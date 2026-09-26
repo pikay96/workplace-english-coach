@@ -17,11 +17,11 @@ A reusable piece of English wording that serves a communication purpose and can 
 _Avoid_: Script, required answer
 
 **Learner turn**:
-A spoken contribution by the learner within an exchange with the tutor.
-_Avoid_: Tutor turn, whole conversation
+A spoken answer by the learner to the tutor's current question or prompt within a practice exchange. The question and answer together form a Q&A pair; only the learner's answer counts as the learner turn.
+_Avoid_: Tutor turn, Q&A pair, whole conversation
 
 **Practice exchange**:
-A short roleplay in which the tutor opens a situation and responds to the learner's contributions with context-sensitive follow-ups.
+A short spoken roleplay using Q&A, in which the tutor opens a situation and asks follow-up questions based on the learner's answers.
 _Avoid_: Single answer, session
 
 **Practice session**:

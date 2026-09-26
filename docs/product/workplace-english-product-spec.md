@@ -27,10 +27,10 @@ The experience teaches expressions through purpose and reasoning, then creates o
 | P01 | Scope the first release as a small, complete take-home submission. Prioritize a functioning end-to-end experience and explicitly defer extensions. | User accepted discussion question 1. |
 | P02 | Target intermediate adults, approximately B1–B2, who can already converse in English but struggle to recall natural workplace wording. Use simple English explanations. | User accepted discussion question 2. This describes the target audience, not a proficiency test or certification claim. |
 | P03 | A normal practice exchange contains 2–3 learner turns before coaching. Coaching can address problems found across those turns. | User's latest written-spec review restores 2–3 turns and explicitly requests advice on problems within the exchange. |
-| P04 | The tutor begins with a scenario-appropriate opening question or prompt and follows up based on the learner's actual answers. | User described a starting question and answer-dependent follow-ups. |
+| P04 | Practice follows spoken Q&A: the tutor asks a scenario-appropriate question or prompt, the learner answers in their own words, and the tutor responds with an answer-dependent follow-up. Each completed learner answer counts as one learner turn; the tutor's question does not add a turn. | User described a starting question and answer-dependent follow-ups, then asked to clarify the Q&A format during visual review. |
 | P05 | Voice leads the experience, including tutor responses and coaching; text supports understanding. Tutor speech should sound natural and fluent, with appropriate tone, intonation, emphasis, and pacing. | Original voice-first direction plus the user's latest request for a native speaking experience with tone and fluency. |
 | P06 | Use LLM judgment to assess the practice exchange across Fluency, Pronunciation, Naturalness, and Workplace tone. Give one integer score from 1–5 per supported dimension and no overall grade. Ground feedback in the learner's speech, provide actionable advice on observed problems across the exchange, select one retry priority, and leave dimensions unscored when evidence is insufficient. | User accepted discussion question 5 and clarified in written review that LLM analysis and scoring should be flexible. |
-| P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Include all seven existing purposes across hosting a meeting, casual talk, and one-on-one, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | Established scenario direction; user accepted discussion question 10 for purpose coverage. |
+| P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Include three purposes in each of hosting a meeting, casual talk, and one-on-one: nine total, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | User expanded coverage to three purposes per scenario during visual review and accepted Close a conversation for Casual talk and Ask for feedback for One-on-one. |
 | P08 | Deliver a web app with one portrait phone layout, using the mockup's 390:844 aspect ratio. Desktop browsers show the same portrait app centered in the available space. Provide immediate guest access without an account. | User refined question 9 during specification review: support only the phone ratio, including when running Docker on desktop. Recent sessions remains included. |
 | P09 | End at a natural break once the communication goal has been demonstrated, after at least 2 learner turns and no later than turn 3. Acknowledge the final answer and explicitly switch to coaching on the completed exchange without asking an unanswered roleplay question. | User accepted adaptive completion in question 4, then changed its bounds to match P03 during written-spec review. |
 | P10 | Offer a focused retry of 1–2 learner turns with a small variation, so the learner can apply the main coaching suggestion immediately. | User accepted discussion question 6. |
@@ -52,11 +52,11 @@ Choose a scenario → explore an expression and its purpose → complete a short
 
 Expressions are connected to what the learner is trying to accomplish. Explain why the wording helps and when it fits. Learners should be able to hear the expression before using it.
 
-The release includes seven purposes: meeting welcome, setting the agenda, meeting wrap-up, starting a casual conversation, following up, sharing progress, and asking for support. Use curated expressions and preset situations through one reusable practice flow.
+The release includes nine purposes, three per scenario: meeting welcome, setting the agenda, meeting wrap-up; starting a casual conversation, following up, closing a conversation; sharing progress, asking for support, asking for feedback. Use curated expressions and preset situations through one reusable practice flow.
 
 ### Practice
 
-The tutor sets up the situation and opens the exchange in a role appropriate to that situation. The learner responds in their own words. Subsequent tutor turns use information from the learner's answers and maintain the workplace context.
+The tutor sets up the situation and opens the exchange in a role appropriate to that situation. Practice takes the form of spoken Q&A: tutor question or prompt → learner answer → tutor acknowledgment and relevant follow-up → learner answer. Each learner answer is one learner turn. The learner responds in their own words, and the tutor uses information from those answers to maintain the workplace context. Questions can be natural invitations such as “Shall we get started?”; answers may include several sentences or a question back to the tutor.
 
 The normal exchange lasts 2–3 learner turns. Tutor turns are not included in that count. After the second learner turn, the tutor may finish at a natural break when the communication goal has been demonstrated. Otherwise, it asks one relevant follow-up and finishes after the third learner turn even when the goal has not yet been met; coaching explains what remains to work on. A learner may explicitly finish earlier.
 
@@ -64,9 +64,9 @@ On completion of roleplay, the tutor acknowledges the learner's final answer and
 
 An illustrative progression for hosting a meeting is:
 
-1. The tutor invites the learner to open the meeting.
-2. After hearing the opening and topic, the tutor asks a relevant question about that topic or the intended decision.
-3. After hearing the second learner answer, the tutor acknowledges it and moves to coaching if the goal is demonstrated; otherwise, it asks one final relevant follow-up and coaches after the third learner answer.
+1. **Tutor:** “Everyone's here. Shall we get started?” **Learner answer 1:** “Good to see everyone. Thanks for making time. Let's review the project timeline.”
+2. **Tutor:** “Sounds good. What should we decide about the timeline today?” **Learner answer 2:** “I'd like us to agree on a launch date.”
+3. The tutor acknowledges the second answer and moves to coaching if the goal is demonstrated; otherwise, it asks one final relevant follow-up and coaches after learner answer 3.
 
 This illustrates responsive conversation, not a fixed dialogue. Follow-ups may advance the scene beyond the selected purpose: welcoming colleagues can lead into the meeting's goal or an attendee's question. The selected skill remains the coaching focus, but the tutor need not invent a problem with that skill if the learner has already demonstrated it. The learner need not use the suggested expression verbatim.
 
@@ -92,14 +92,14 @@ The mockup's prepared scores and scripted improvements establish no real assessm
 ## 4. Core requirements
 
 - The learner can speak to an LLM-driven tutor through LiveKit and receive natural, fluent, context-appropriate spoken responses with expressive tone and intonation.
-- A normal practice exchange supports 2–3 learner turns before switching to coaching.
+- A normal practice exchange supports 2–3 learner answers in spoken Q&A before switching to coaching; tutor questions do not count toward that limit.
 - Tutor follow-ups respond to details in the learner's answers rather than merely advancing a fixed question list.
 - Practice allows suitable alternative wording; copying the displayed expression is not a success condition.
 - The tutor delivers coaching aloud, can advise on problems across all completed exchange turns, and provides secondary written support.
 - LLM assessment summarizes the full exchange in four separate 1–5 dimensions, using contextual judgment and actual speech evidence, with no aggregate grade and no invented score for unsupported dimensions.
 - A focused retry gives the learner 1–2 turns to apply the main suggestion in a slightly varied situation.
 - Explanations suit intermediate learners and use simple English.
-- All seven purposes share one reusable practice experience, with curated expressions and preset situations.
+- All nine purposes, three per scenario, share one reusable practice experience, with curated expressions and preset situations.
 - Recent sessions preserves unfinished work and completed results in the same browser for 24 hours after practice activity, with explicit deletion.
 - The release demonstrates a working learning journey within a deliberately small take-home scope.
 
@@ -149,7 +149,7 @@ These controls define the learner-visible behavior independently of the eventual
 
 - Speak with natural phrasing, connected rhythm, meaningful emphasis, and intonation appropriate to the situation. Keep a clear, comfortable pace for intermediate learners. Roleplay should sound like a workplace conversation; coaching should sound like a supportive explanation. Modeled expressions should demonstrate the delivery being taught.
 - Ask one question at a time. Normal roleplay turns should usually be one or two short sentences, leaving most of the speaking opportunity to the learner.
-- A learner turn is one submitted response to the current tutor prompt. Silence, background noise, help requests, and control actions do not advance the 2–3-turn count. A genuine brief answer can count even when it supplies insufficient evidence for scoring.
+- A learner turn is one submitted learner answer to the current tutor question or prompt. The tutor's question and acknowledgment do not advance the 2–3-turn count. Silence, background noise, help requests, and control actions do not advance it either. A genuine brief answer can count even when it supplies insufficient evidence for scoring.
 - Automatically detect completion using speech context and pauses. An ordinary thinking pause must not automatically become a completed response. A visible **I'm done** control submits the current response if the tutor keeps waiting; it does nothing to the turn count when there is no speech to submit.
 - If the learner's meaning is unclear, ask a short clarification within the remaining exchange turn budget instead of inventing it. After turn 3, explain any uncertainty in coaching rather than extending roleplay. Do not manufacture details for assessment from an unreliable transcript.
 - Speaking while the tutor speaks interrupts its audio. The tutor must respond to the new learner contribution without later resuming an obsolete reply.
@@ -212,7 +212,7 @@ The technical specification must define how audio reaches an audio-capable evalu
 
 Each purpose has a main expression, one alternative, a plain-English explanation of why it works and when it fits, and a short example. It also supplies a preset situation, learner/tutor roles, a communication goal, and a hint starter. **Listen** provides audible expression playback; **Practice** opens the corresponding scene.
 
-Launch coverage includes all seven existing purposes. There is no progression lock: learners can choose any available purpose. They may introduce their own details while speaking; a separate personalization form or custom-scenario builder is outside release scope.
+Launch coverage includes nine purposes, exactly three in each scenario. Close a conversation and Ask for feedback extend the seven-purpose mockup; their expressions and practice content must be supplied for the release. There is no progression lock: learners can choose any available purpose. They may introduce their own details while speaking; a separate personalization form or custom-scenario builder is outside release scope.
 
 | Scenario | Purpose | Preset situation |
 | --- | --- | --- |
@@ -221,8 +221,10 @@ Launch coverage includes all seven existing purposes. There is no progression lo
 | Hosting a meeting | Wrap up | Close a team discussion and confirm decisions or next steps. |
 | Casual talk | Start a conversation | Begin a friendly conversation with a colleague before work starts. |
 | Casual talk | Follow up | Ask a colleague about a presentation they mentioned earlier. |
+| Casual talk | Close a conversation | End a friendly chat with a colleague warmly when it is time to return to work. |
 | One-on-one | Share progress | Give a manager or colleague a concise project update. |
 | One-on-one | Ask for support | Explain a blocker and make a specific request for help. |
+| One-on-one | Ask for feedback | Ask a manager or colleague for specific feedback on a recent piece of work. |
 
 ### Retry and takeaway
 
@@ -277,8 +279,8 @@ These are the observable checks the implementation and technical plan should sup
 | ID | Scenario | Acceptance condition |
 | --- | --- | --- |
 | A01 | Guest opens the app on phone or desktop | Scenario selection is immediately usable without sign-up. Both hosts display the same 390:844 portrait app surface with readable text and reachable controls; a wide browser centers it instead of producing a desktop layout. |
-| A02 | Learner selects any of the seven purposes | Its expression, alternative, explanation, audible playback, and matching practice entry are available. |
-| A03 | Normal conversation | The tutor gives an audible setup and opening, then produces follow-ups grounded in the actual learner answers. Prepared sample playback cannot substitute for this check. |
+| A02 | Learner selects any of the nine purposes | Each scenario exposes exactly three purposes. Every purpose has an expression, alternative, explanation, audible playback, and matching practice entry, including Close a conversation and Ask for feedback. |
+| A03 | Normal Q&A conversation | The tutor gives an audible setup and opening question or prompt, then produces follow-up questions grounded in the actual learner answers. Two learner answers count as two turns regardless of the number of tutor messages. Prepared sample playback cannot substitute for this check. |
 | A04 | Goal achieved after 2 turns | The tutor can finish after the second learner answer at a natural break, acknowledge it, and switch explicitly to coaching without leaving a new question unanswered. |
 | A05 | Goal not yet demonstrated after turn 3 | The tutor ends roleplay after the third learner turn and gives constructive coaching instead of adding a fourth roleplay question. |
 | A06 | Learner pauses mid-answer | An ordinary thinking pause does not trigger an intrusive substantive reply. If completion is not detected when the learner is done, **I'm done** submits exactly once. The technical test plan must define representative audio samples. |
