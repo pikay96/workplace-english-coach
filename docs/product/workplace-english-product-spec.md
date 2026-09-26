@@ -30,7 +30,7 @@ The experience teaches expressions through purpose and reasoning, then creates o
 | P04 | Practice follows spoken Q&A: the tutor asks a scenario-appropriate question or prompt, the learner answers in their own words, and the tutor responds with an answer-dependent follow-up. Each completed learner answer counts as one learner turn; the tutor's question does not add a turn. | User described a starting question and answer-dependent follow-ups, then asked to clarify the Q&A format during visual review. |
 | P05 | Voice leads the experience, including tutor responses and coaching; text supports understanding. Tutor speech should sound natural and fluent, with appropriate tone, intonation, emphasis, and pacing. | Original voice-first direction plus the user's latest request for a native speaking experience with tone and fluency. |
 | P06 | Use LLM judgment to assess the practice exchange across Fluency, Pronunciation, Naturalness, and Workplace tone. Give one integer score from 1–5 per supported dimension and no overall grade. Ground feedback in the learner's speech, provide actionable advice on observed problems across the exchange, select one retry priority, and leave dimensions unscored when evidence is insufficient. | User accepted discussion question 5 and clarified in written review that LLM analysis and scoring should be flexible. |
-| P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Include three purposes in each of hosting a meeting, casual talk, and one-on-one: nine total, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | User expanded coverage to three purposes per scenario during visual review and accepted Close a conversation for Casual talk and Ask for feedback for One-on-one. |
+| P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Present scenarios in this order: Hosting a meeting → One-on-one → Casual talk. Include three purposes in each: nine total, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | User expanded coverage to three purposes per scenario during visual review, accepted Close a conversation and Ask for feedback, and requested Casual talk after Meeting and One-on-one. |
 | P08 | Deliver a web app with one portrait phone layout, using the mockup's 390:844 aspect ratio. Desktop browsers show the same portrait app centered in the available space. Provide immediate guest access without an account. | User refined question 9 during specification review: support only the phone ratio, including when running Docker on desktop. Recent sessions remains included. |
 | P09 | End at a natural break once the communication goal has been demonstrated, after at least 2 learner turns and no later than turn 3. Acknowledge the final answer and explicitly switch to coaching on the completed exchange without asking an unanswered roleplay question. | User accepted adaptive completion in question 4, then changed its bounds to match P03 during written-spec review. |
 | P10 | Offer a focused retry of 1–2 learner turns with a small variation, so the learner can apply the main coaching suggestion immediately. | User accepted discussion question 6. |
@@ -38,7 +38,7 @@ The experience teaches expressions through purpose and reasoning, then creates o
 | P12 | Use hands-free conversation with automatic turn completion and spoken interruption. Provide explicit controls, including an “I'm done” fallback, and tolerate thinking pauses. | User accepted discussion question 8. |
 | P13 | After retry, give targeted spoken feedback and a takeaway with an expression and its reasoning pattern. Keep the original exchange scores; do not automatically regrade four dimensions from the focused retry. Offer another focused retry or finish. | User accepted discussion question 11. |
 | P14 | Temporarily retain transcript, progress, and scores for 24 hours after the last practice activity, without application-saved learner recordings. Add Recent sessions for the same browser, without an account. | User selected temporary recovery in question 12 and requested Recent sessions; accepted questions 13–14. |
-| P15 | Recent sessions includes unfinished and completed sessions. Resume continues unfinished practice; Review opens completed results; Practice again starts a new exchange. | User accepted discussion question 13. |
+| P15 | Recent sessions includes unfinished and completed sessions. Resume continues unfinished practice; Review opens completed results; Practice again starts a new session for the same purpose with a fresh exchange and assessment. | User accepted discussion question 13. Section 5 clarifies the new-session behavior in response to the user's question about repeated questions. |
 | P16 | Leaving practice saves it paused. Finish completes practice and retains the results. Explicit Delete or expiry clears the session. | User accepted discussion question 14. This replaces the earlier clear-on-exit proposal. |
 | P17 | Build the real voice experience with the LiveKit SDK and LLM-driven conversation and speaking-quality assessment. Select models that can support the required speech delivery and audio-grounded feedback. | User explicitly confirmed LiveKit SDK and an LLM behind the experience during written-spec review. Specific providers remain for technical design. |
 
@@ -52,7 +52,7 @@ Choose a scenario → explore an expression and its purpose → complete a short
 
 Expressions are connected to what the learner is trying to accomplish. Explain why the wording helps and when it fits. Learners should be able to hear the expression before using it.
 
-The release includes nine purposes, three per scenario: meeting welcome, setting the agenda, meeting wrap-up; starting a casual conversation, following up, closing a conversation; sharing progress, asking for support, asking for feedback. Use curated expressions and preset situations through one reusable practice flow.
+The release includes nine purposes, three per scenario, displayed in this order: meeting welcome, setting the agenda, meeting wrap-up; sharing progress, asking for support, asking for feedback; starting a casual conversation, following up, closing a conversation. Use curated expressions and preset situations through one reusable practice flow.
 
 ### Practice
 
@@ -118,14 +118,20 @@ Section 11 gives concrete acceptance scenarios.
 
 Provide two primary destinations: **Conversations** and **Recent sessions**. Conversation selection leads to expression exploration and practice. Recent sessions is an intentional addition to the original six-screen mockup.
 
+Conversations displays **Hosting a meeting → One-on-one → Casual talk**, with three purposes under each scenario. This is a presentation order, not a progression lock.
+
 Each recent entry shows scenario, purpose, last practice time, and whether it is unfinished or completed. Make the 24-hour retention window clear. An empty page explains that starting practice creates an entry.
 
 - **Resume** restores an unfinished session at its saved phase: roleplay, coaching, or focused retry. It does not restart the original exchange or reset the turn count. Resume is an explicit user action; microphone access is relevant only when the restored phase requires speaking.
 - **Review** opens a completed session's transcript, original scores, coaching, retry feedback if present, and takeaway. It does not activate the microphone or reopen that session for new answers.
-- **Practice again** creates a new session for the same purpose, with a fresh exchange and assessment. It does not overwrite completed results.
+- **Practice again** creates a new session for the same purpose, with a full 2–3-turn exchange and a fresh assessment based on the new answers. Follow-ups respond to those answers; the app does not replay the completed session's question sequence. Completed results remain unchanged.
 - **Delete** removes the selected session. If it is active, stop its capture and audio first.
 - Only one voice session can be active at a time in the browser. Starting or resuming another session pauses and saves the previous unfinished one.
 - A guest can access only sessions associated with that browser. Recent sessions must not expose another guest's transcript or results.
+
+The draft behavior for **Practice again** is to vary the opening prompt or one small detail of the preset situation from the completed session, while preserving the selected purpose, learner/tutor roles, and intended difficulty. For example, practicing a meeting welcome again might change a timeline discussion to a weekly planning meeting. Familiar question types may recur; every question need not be globally unique. The learning objective and reusable expressions remain consistent.
+
+Practice again differs from a **focused retry**: Practice again starts a full new exchange with its own scores; a focused retry stays in the current session for 1–2 learner turns to apply one coaching suggestion and preserves the original scores.
 
 Recent sessions is temporary browser-associated history. It does not provide cross-device access, an account, or indefinite progress tracking. Clearing browser identification can make server-side guest sessions inaccessible until they expire; do not promise recovery without that browser association.
 
@@ -212,6 +218,8 @@ The technical specification must define how audio reaches an audio-capable evalu
 
 Each purpose has a main expression, one alternative, a plain-English explanation of why it works and when it fits, and a short example. It also supplies a preset situation, learner/tutor roles, a communication goal, and a hint starter. **Listen** provides audible expression playback; **Practice** opens the corresponding scene.
 
+Preset situations bound the context for the small Practice again variations described in section 5. Save the actual situation used with each session so Resume and Review retain its context.
+
 Launch coverage includes nine purposes, exactly three in each scenario. Close a conversation and Ask for feedback extend the seven-purpose mockup; their expressions and practice content must be supplied for the release. There is no progression lock: learners can choose any available purpose. They may introduce their own details while speaking; a separate personalization form or custom-scenario builder is outside release scope.
 
 | Scenario | Purpose | Preset situation |
@@ -219,12 +227,12 @@ Launch coverage includes nine purposes, exactly three in each scenario. Close a 
 | Hosting a meeting | Welcome everyone | Open a weekly team meeting with colleagues. |
 | Hosting a meeting | Set the agenda | Explain the goal and intended outcome of a project discussion. |
 | Hosting a meeting | Wrap up | Close a team discussion and confirm decisions or next steps. |
-| Casual talk | Start a conversation | Begin a friendly conversation with a colleague before work starts. |
-| Casual talk | Follow up | Ask a colleague about a presentation they mentioned earlier. |
-| Casual talk | Close a conversation | End a friendly chat with a colleague warmly when it is time to return to work. |
 | One-on-one | Share progress | Give a manager or colleague a concise project update. |
 | One-on-one | Ask for support | Explain a blocker and make a specific request for help. |
 | One-on-one | Ask for feedback | Ask a manager or colleague for specific feedback on a recent piece of work. |
+| Casual talk | Start a conversation | Begin a friendly conversation with a colleague before work starts. |
+| Casual talk | Follow up | Ask a colleague about a presentation they mentioned earlier. |
+| Casual talk | Close a conversation | End a friendly chat with a colleague warmly when it is time to return to work. |
 
 ### Retry and takeaway
 
@@ -251,7 +259,7 @@ The takeaway identifies the practiced purpose, one expression to reuse, and the 
 
 ### Retention and recovery
 
-- Temporarily store each guest session's selected purpose, preset situation, phase, progress, completed transcript, original assessment, coaching, retry feedback, and takeaway as available. Associate access with the same browser; no account is required.
+- Temporarily store each guest session's selected purpose, actual practice situation, phase, progress, completed transcript, original assessment, coaching, retry feedback, and takeaway as available. Associate access with the same browser; no account is required.
 - Retain each session for at most 24 hours after its last practice activity. Starting/resuming practice, submitting answers, requesting active help, or finishing can renew this interval. Passive heartbeats, listing Recent sessions, and reviewing completed results do not renew it.
 - **Back to conversations** saves; **Finish** completes; **Delete** removes. Deletion applies to application session data and does not promise deletion from external providers' systems.
 - The app does not persist learner recordings. Audio may be held temporarily for live processing and assessment, then discarded. Avoid copying transcripts or learner audio into application logs. Provider processing and retention must be documented separately in technical design.
@@ -279,7 +287,7 @@ These are the observable checks the implementation and technical plan should sup
 | ID | Scenario | Acceptance condition |
 | --- | --- | --- |
 | A01 | Guest opens the app on phone or desktop | Scenario selection is immediately usable without sign-up. Both hosts display the same 390:844 portrait app surface with readable text and reachable controls; a wide browser centers it instead of producing a desktop layout. |
-| A02 | Learner selects any of the nine purposes | Each scenario exposes exactly three purposes. Every purpose has an expression, alternative, explanation, audible playback, and matching practice entry, including Close a conversation and Ask for feedback. |
+| A02 | Learner selects any of the nine purposes | Scenarios appear in the order Hosting a meeting → One-on-one → Casual talk, each exposing exactly three purposes. Every purpose has an expression, alternative, explanation, audible playback, and matching practice entry, including Close a conversation and Ask for feedback. |
 | A03 | Normal Q&A conversation | The tutor gives an audible setup and opening question or prompt, then produces follow-up questions grounded in the actual learner answers. Two learner answers count as two turns regardless of the number of tutor messages. Prepared sample playback cannot substitute for this check. |
 | A04 | Goal achieved after 2 turns | The tutor can finish after the second learner answer at a natural break, acknowledge it, and switch explicitly to coaching without leaving a new question unanswered. |
 | A05 | Goal not yet demonstrated after turn 3 | The tutor ends roleplay after the third learner turn and gives constructive coaching instead of adding a fourth roleplay question. |
@@ -295,7 +303,7 @@ These are the observable checks the implementation and technical plan should sup
 | A15 | Session expiry or Delete | Session content is removed and cannot be resumed/reviewed. Back to conversations does not trigger deletion. Listing or reviewing completed sessions does not extend their retention. |
 | A16 | Reviewer's clean checkout | Supplying the documented root `.env` and running Docker Compose starts the real frontend, backend, and Redis-backed voice experience. Required submission documents and video are present. |
 | A17 | Learner leaves and resumes practice | Recent sessions shows the unfinished session. Resume restores its purpose, phase, and accepted turn count instead of restarting it. |
-| A18 | Learner reviews completed practice | Review shows the completed transcript, original scores, feedback, and takeaway without microphone capture. Practice again creates a distinct session without altering those results. |
+| A18 | Learner reviews completed practice and practices again | Review shows the completed transcript, original scores, feedback, and takeaway without microphone capture. Practice again creates a distinct session for the same purpose with a varied opening or small situation detail, answer-dependent follow-ups over a new 2–3-turn exchange, and a fresh assessment. The learner/tutor roles and intended difficulty remain consistent; the completed results stay unchanged. |
 | A19 | Learner switches sessions | The previous unfinished voice session is paused and saved. Only the newly resumed session can capture or play live conversation audio. |
 | A20 | Natural voice delivery | In a real conversation, tutor replies and coaching demonstrate natural phrasing, fluent rhythm, suitable intonation, and context-appropriate tone. A spoken expression example demonstrates the delivery discussed in coaching. Review uses actual generated speech; prepared mockup clips do not establish acceptance. |
 | A21 | Useful feedback spans multiple turns | When distinct meaningful problems appear in separate learner turns, coaching can address both with evidence and actionable suggestions, including an issue from an earlier answer. Notes preserve the detail, spoken coaching stays concise, and the retry targets one priority. |
