@@ -33,7 +33,7 @@ Feedback in which the tutor discusses the learner's speech and how to improve it
 _Avoid_: Roleplay reply
 
 **Exchange assessment**:
-Feedback on a practice exchange across fluency, pronunciation, naturalness, and workplace tone, with a separate score for each dimension that has sufficient evidence.
+Feedback on the wording used in a practice exchange across naturalness and workplace tone, with a separate score for each dimension that has sufficient evidence.
 _Avoid_: Overall grade, proficiency level
 
 **Focused retry**:

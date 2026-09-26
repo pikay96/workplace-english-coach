@@ -2,15 +2,15 @@
 
 Date: 2026-09-26
 
-Status: technical design draft for review. This document selects a proposed implementation and defines its contracts and verification criteria. No application code, provider configuration, Docker setup, or live model benchmark has been completed as part of this specification.
+Status: technical design draft for review. LiveKit-only runtime credentials, the 60-second cue / 120-second answer cap, and wording-based MVP assessment are agreed. Fluency and Pronunciation scores are deferred beyond the MVP. No application code, provider configuration, Docker setup, or live model benchmark has been completed as part of this specification.
 
 ## 1. Scope and authority
 
-Implement the learning journey in the [product specification](../product/workplace-english-product-spec.md): nine communication purposes, an LLM-generated spoken opening, an answer-dependent exchange of 2–3 learner turns, audio-grounded coaching, optional 1–2-turn focused retries, and temporary guest history. Preserve the single portrait interface and voice-led experience.
+Implement the learning journey in the [product specification](../product/workplace-english-product-spec.md): nine communication purposes, an LLM-generated spoken opening, an answer-dependent exchange of 2–3 learner turns, wording-based spoken coaching, optional 1–2-turn focused retries, and temporary guest history. Preserve the single portrait interface and voice-led experience.
 
 The product specification owns learner-visible behavior and assessment anchors. The [assignment](../requirements/general-take-home-project.md) owns delivery requirements. The [domain glossary](../../CONTEXT.md) owns terminology. This technical specification resolves implementation choices; it does not replace these sources or turn the existing mockup into working software.
 
-The design aims for a small, complete take-home submission. It uses one frontend, one Python backend codebase with separate API and agent processes, Redis, LiveKit Cloud, and one model provider. Accounts, a database beyond Redis, durable learner recordings, a job-queue platform, and production autoscaling are outside the first implementation.
+The design aims for a small, complete take-home submission. It uses one frontend, one Python backend codebase with separate API and agent processes, Redis, and LiveKit Cloud with LiveKit Inference. The interviewer supplies only LiveKit Cloud credentials; no separate OpenAI, Google, Deepgram, Cartesia, or other model-provider account/key is required. A locally generated cookie secret is application configuration, not another external account. Accounts, a database beyond Redis, durable learner recordings, a job-queue platform, and production autoscaling are outside the first implementation.
 
 ### Recommended decisions
 
@@ -18,13 +18,14 @@ The design aims for a small, complete take-home submission. It uses one frontend
 | --- | --- | --- |
 | Frontend | React, TypeScript, Vite; LiveKit browser SDK and React components | A client application is sufficient; the existing portrait design does not need server rendering. |
 | Backend | Python 3.12, FastAPI, Pydantic, LiveKit Agents 1.8 release family | Typed state and assessment validation, async provider calls, and documented Python voice controls. Lock exact compatible versions during implementation. |
-| Media service | LiveKit Cloud; run our agent locally in Docker | Avoid local WebRTC/TURN infrastructure while satisfying the assignment's containerized frontend and backend requirement. Internet access and provider credentials remain necessary. |
-| Conversation | OpenAI `gpt-realtime-2`, audio input and text output | Preserve audible context while retaining control over the words published to the learner. |
-| Spoken output | OpenAI `gpt-4o-mini-tts`, voice `marin` | Speak validated conversation text, exact expressions, coaching examples, and recovered prompts with one voice. |
-| Durable transcript | OpenAI `gpt-4o-mini-transcribe`, per submitted audio segment | Produce an independently identifiable transcript for Redis without making transcript arrival order determine turn order. |
-| Exchange assessment | OpenAI `gpt-audio-1.5`, audio input and text/function output | Judge the original learner audio against the four dimensions in a separate bounded request. |
+| Media service | LiveKit Cloud; run our agent locally in Docker | Avoid local WebRTC/TURN infrastructure while satisfying the assignment's containerized frontend and backend requirement. Internet access and LiveKit credentials remain necessary. |
+| Conversation | LiveKit Inference `google/gemini-3.5-flash`, transcript input and validated text output | A catalog-listed, non-preview starting choice for contextual dialogue and tool/structured-result generation; benchmark quality and latency. [L2, L13] |
+| Spoken output | LiveKit Inference `cartesia/sonic-3`, Blake voice `a167e0f3-df7e-4d52-a9c3-f949145efdab` | Speak validated conversation text, exact expressions, coaching examples, and recovered prompts with one catalog-listed voice. [L8] |
+| Durable transcript | LiveKit Inference `deepgram/nova-3`, English streaming STT | Reuse final streaming transcripts for conversation and Redis; preserve application-owned answer boundaries. [L14] |
+| Exchange assessment | LiveKit Inference `google/gemini-3.5-flash`, separate text request | Assess Naturalness and Workplace tone from the saved exchange and reliable wording; no learner audio or audio scores. |
+| Answer duration | Gentle cue at 60 seconds; capture cap at 120 seconds | Preserve thinking pauses and let the learner submit the capped answer or retry; duration does not determine a score. |
 | State | Redis, with atomic transitions and 24-hour activity-based expiry | Restore completed work independently of the browser, LiveKit room, and provider connection. |
-| Learner audio | Bounded agent-process RAM only | Support actual audio assessment without saving recordings to Redis, files, or cloud recording storage. |
+| Learner audio | Bounded agent-process RAM during capture/submission only | Support streaming transcription and capped-answer submission; release accepted audio and assess saved wording. |
 | Packaging | Four Compose services: `web`, `api`, `agent`, `redis` | One root `.env`, one build/start command, and explicit health checks. |
 
 These are selected defaults, not claims that account access, latency, voice quality, or assessment quality have already been proven. Section 12 defines the checks that must pass before they are accepted for the release.
@@ -35,27 +36,33 @@ These are selected defaults, not claims that account access, latency, voice qual
 
 | Approach | Advantages | Costs for this product | Decision |
 | --- | --- | --- | --- |
-| Realtime audio input → controlled text → TTS, plus audio assessment | Audible input cues; deterministic replay of saved words; a single speech path for roleplay, coaching, and recovery | An extra speech-generation stage; output validation adds latency | **Recommended.** Recovery and exact expression playback are core requirements. |
-| Direct speech-to-speech, plus audio assessment | Fewer stages and expressive native audio output | Harder to validate an utterance before it is heard; exact replay requires another path; recovered text history can affect audio output | Retain as an alternative if the selected design fails the voice-quality benchmark. |
-| Streaming STT → text LLM → TTS, plus audio assessment | Mature text control and straightforward transcript ownership | The conversation model loses delivery cues; a separate audio evaluator is still needed | Valid fallback architecture, requiring a documented design change and the same acceptance checks. |
+| Streaming STT → text LLM → TTS through LiveKit Inference | One external credential set; controlled words and straightforward transcript recovery | Conversation and assessment cannot judge audible delivery cues | **Selected MVP architecture**, including a separate wording-assessment request. |
+| Realtime audio input → controlled text → TTS through a direct provider plugin | Audible input cues and deterministic replay | The previously selected plugin needs separate provider credentials | Excluded by the interviewer's setup constraint. |
+| Direct speech-to-speech through a direct provider plugin | Expressive native audio output | Separate provider credentials; less control over exact words before playback | Excluded by the interviewer's setup constraint. |
 
-LiveKit calls the selected pattern a **half-cascade**. Its current pipeline comparison documents the tradeoffs, and its OpenAI plugin supports text-only model output with a separate TTS provider. The plugin guide also documents an audio-output issue when loading history into a direct realtime model. These are concrete reasons to prefer the half-cascade here. [L1, L2]
+The selected pattern is a **STT–LLM–TTS pipeline**, replacing the earlier half-cascade proposal. LiveKit Inference supplies the three model roles and manages their usage through LiveKit Cloud. A locally hosted agent can use that service; this does not require deploying our agent to LiveKit's agent-hosting platform. Do not confuse a model provider's LiveKit plugin with access through LiveKit Inference. [L1, L2, L7]
 
 ### Provider responsibilities
 
-The realtime model interprets the learner's contribution, the communication goal, and the appropriate next utterance. It receives the selected content, saved situation and roles, authoritative phase and turn budget, and the short conversation history. Use low reasoning effort for this bounded conversation; benchmark it rather than assuming a larger reasoning budget improves tutoring. `gpt-realtime-2` supports configurable reasoning and function calling, but does not promise Structured Outputs. [O1]
+The conversation LLM interprets the learner's transcribed contribution, the communication goal, and the appropriate next utterance. It receives the selected content, saved situation and roles, authoritative phase and turn budget, and the short conversation history. It does not receive acoustic cues and cannot claim to hear pronunciation, intonation, or hesitation. Request a typed proposal through the supported tool/structured-result interface and always validate it with Pydantic before applying it. Verify exact model options against the pinned SDK; do not copy direct-provider settings into Inference without checking support. [L13]
 
-The transcription model supplies the durable wording. It is not the pronunciation judge. For the initial implementation, transcribe the submitted learner clip through the file-transcription endpoint in parallel with the realtime model's turn proposal. This avoids depending on delayed realtime transcripts for persistence. Disable duplicate provider-native input transcription in the normal path; optional interim captions must not become separate learner turns. The endpoint documents `gpt-4o-mini-transcribe` and WAV input; use its supported JSON response format. Do not request word timestamps that this model/format combination does not supply. [O5]
+The streaming transcription model supplies durable wording. It is not the pronunciation judge. Preserve filler words, disable semantic rewriting/entity normalization, and do not boost the taught expression in a way that biases recognition toward the expected answer. Aggregate final transcript segments against the application's capture boundaries; an interim or final STT event is not itself a completed learner answer. Reuse the same final wording for the conversation request and Redis. Do not introduce a separate file-transcription API/key. [L14]
 
-The TTS model speaks only server-approved text. Use concise, conversational English at a comfortable B1–B2 pace. Roleplay delivery follows the workplace relationship; coaching uses a supportive explanatory tone. Delivery instructions can specify emphasis, pacing, and tone for a modeled expression. `marin` is an initial voice choice recommended in OpenAI's TTS documentation; learner-facing listening tests remain necessary. [L8, O4]
+The TTS model speaks only server-approved text. Use concise, conversational English at a comfortable B1–B2 pace. Roleplay delivery follows the workplace relationship; coaching uses a supportive explanatory tone. Use only the speed/emotion controls documented for the selected Inference model; do not assume free-form delivery instructions are supported. Blake is an initial catalog voice, not a tested quality claim. Learner-facing listening tests remain necessary. [L8]
 
-The audio evaluator receives all eligible original-exchange clips together, plus context and their transcript map. It returns formative judgments, evidence, coaching notes, and one retry priority. `gpt-audio-1.5` supports audio input and function calling through Chat Completions, but **does not support guaranteed Structured Outputs**. Request the assessment function, parse its arguments, and validate them with Pydantic. Do not assume `response_format: json_schema` will make this model's output valid. [O2, O3]
+The wording evaluator uses a separate Inference LLM request with all accepted original answers, transcript reliability, and conversation context. It returns Naturalness and Workplace tone results, transcript-linked evidence, coaching notes, and one wording-focused retry priority. Reusing the conversation model identifier does not reuse its live prompt, tools, or mutable context. The evaluator has no room, microphone, playback, or session-lifecycle tools.
 
-Use direct OpenAI credentials for these four roles. LiveKit Cloud provides media and dispatch; this design does not use LiveKit Inference or inherit its provider-retention terms. Model identifiers and voice are configurable in the root `.env`. Do not silently substitute models when access fails.
+All remote model calls must authenticate through LiveKit Cloud. Model identifiers and voice are configurable in the root `.env`; no direct-provider fallback is allowed. LiveKit Inference has usage-based billing, so a LiveKit project with sufficient inference access/credit is required. Its documented zero-data-retention policy applies to Inference traffic; recording/observability controls remain separate. [L2]
+
+### Deferred audio assessment
+
+The user chose to simplify the MVP to wording-based feedback and revisit audio scores later. Do not render Fluency or Pronunciation cards, infer speaking quality from STT confidence/word counts, or describe the assessor as hearing audio. Label results **Based on your words**; Workplace tone concerns word choice, directness, and formality.
+
+The checked Python Inference client serializes its chat context using an OpenAI-compatible format whose converter skips `AudioContent`. A model's audio capability in its native API does not establish audio-input support through this route. Any future audio-scoring feature needs a verified audio-capable path and a new calibration/data-lifetime design. It is outside this release, not an unresolved MVP dependency. [L16]
 
 ### Cost and compatibility
 
-Record input/output usage by model, response duration, and assessment retries without recording learner content. Calculate actual cost per completed practice session from dated provider prices; do not estimate a flat cost per minute from text-token prices. The extra transcription pass and repeated assessment audio are deliberate costs of reliable recovery and evidence-based feedback.
+Record usage by Inference model, response duration, and retries without recording learner content. Calculate actual cost per completed practice session from dated LiveKit Inference prices; include STT, conversation LLM, assessment LLM, TTS, and transport separately. Do not estimate a flat cost per minute from text-token prices. A model-catalog entry is not proof of access, performance, or assessment quality. [L2]
 
 Pin Python and JavaScript dependencies in lockfiles and pin container image versions/digests when creating the implementation. Store the selected model identifier, prompt version, rubric version, and content version with each session/result. The checked model pages do not establish an immutable dated snapshot for every selected alias, so do not invent snapshot names. Model changes rerun the voice and assessment checks.
 
@@ -70,12 +77,13 @@ flowchart LR
     LK <-->|WebRTC audio| A[Python agent job]
     API -->|Explicit room dispatch| LK
     A <--> R
-    A <-->|Audio in, turn proposal out| RT[Realtime model]
-    A -->|Submitted clip| STT[Transcription]
-    A -->|Validated words| TTS[Speech generation]
+    A -->|Learner audio| STT[LiveKit Inference STT]
+    STT -->|Final transcript segments| A
+    A <-->|Transcript in, turn proposal out| LLM[LiveKit Inference LLM]
+    A -->|Validated words| TTS[LiveKit Inference TTS]
     TTS --> A
-    A -->|Original learner clips in RAM| E[Audio evaluator]
-    E -->|Validated assessment| A
+    A -->|Saved exchange wording and context| E[LiveKit Inference wording evaluator]
+    E -->|Two dimensions and coaching| A
 ```
 
 The API and agent share a small domain package rather than call each other's internal implementation. Redis is the source of truth. LiveKit events describe transport and speech activity; they do not own product progress.
@@ -85,8 +93,8 @@ The API and agent share a small domain package rather than call each other's int
 | `content` | Read nine versioned purpose definitions; validate scenario order, expressions, roles, and situation constraints | Curated JSON; no model or Redis dependency |
 | `sessions` | `create`, `resume`, `apply_command`, `get`, `list`, `delete`; ownership, expiry, idempotency, and state transitions | Redis repository and trusted server clock |
 | `conversation` | Apply a validated turn proposal to the current phase and budget; construct phase-specific model context | Typed session/content objects; no browser or SDK types |
-| `voice` | LiveKit connection, audio segmentation, provider adaptation, interruption, and playback receipts | LiveKit, OpenAI, session interface |
-| `assessment` | Build an evidence manifest, call the audio model, validate results, and generate targeted retry feedback | In-memory clips, typed rubric, provider client |
+| `voice` | LiveKit connection, audio segmentation, Inference adaptation, interruption, and playback receipts | LiveKit SDK/Inference, session interface |
+| `assessment` | Build a transcript evidence manifest, call the wording evaluator, validate results, and generate targeted retry feedback | Saved exchange, typed rubric, LiveKit Inference LLM |
 | `api` | Cookie authentication, request validation, endpoints, SSE, explicit dispatch, and redacted operational errors | Session interface and LiveKit server API |
 | Frontend session controller | Render state, own capture/playback, apply immediate local stops, and reconcile versioned server events | API/SSE and browser LiveKit SDK |
 
@@ -114,7 +122,7 @@ workflow.md
 
 Each purpose contains `scenario_id`, `purpose_id`, display order, title, main expression, alternative, explanation, example, hint starter, preset situation, learner role, tutor role, communication goal, difficulty, and allowed small situation variations. Validate exactly three purposes per scenario and the product's scenario order. Curated examples guide learning; they are not prepared conversation responses.
 
-For a new session, the realtime model produces a structured `OpeningProposal` containing the actual situation, role-consistent setup, and one opening question or prompt. Save the validated proposal before speaking it. Practice again passes the earlier opening as variation context and requests different wording or a small permitted situation change. If the new opening is an exact normalized duplicate, retry generation once; a repeated failure is visible and retryable, not replaced with a prepared successful opening. No global uniqueness database is needed.
+For a new session, the conversation LLM produces a structured `OpeningProposal` containing the actual situation, role-consistent setup, and one opening question or prompt. Save the validated proposal before speaking it. Practice again passes the earlier opening as variation context and requests different wording or a small permitted situation change. If the new opening is an exact normalized duplicate, retry generation once; a repeated failure is visible and retryable, not replaced with a prepared successful opening. No global uniqueness database is needed.
 
 Resume uses the saved situation and question. It does not call opening generation again.
 
@@ -140,7 +148,7 @@ Pause is a lifecycle overlay that preserves the current phase; it is not a new r
 ### Turn proposal and commit
 
 1. Allocate a server-side `input_id` for the current capture buffer. Automatic completion and **I'm done** compete to seal that same buffer; only one can win.
-2. Seal the learner-only audio segment. Start transcription and request a realtime-model `TurnProposal`. Disable automatic unconstrained spoken responses: the proposal must pass the controller before TTS receives text.
+2. Seal the learner-only audio segment. Finalize the streaming transcript for that capture boundary and request an Inference LLM `TurnProposal`. Disable automatic unconstrained spoken responses: the proposal must pass the controller before TTS receives text. A duration-capped buffer first waits for the learner's explicit submission choice, as defined in section 5.
 3. The proposal describes `contribution_kind` (`answer`, `help`, `coaching_question`, `unusable`), `relation` (`new_answer`, `continuation`), contextual goal/target judgment, acknowledgment, and the proposed next action and words. The server supplies permissible reference IDs; the model cannot create session IDs, turn numbers, epochs, or ownership facts.
 4. For an answer, wait for the final transcription result or an explicit unclear-speech result. A provider failure is a retryable pending submission, not fabricated wording. Validate the proposal against the phase and the prospective count, then atomically save the accepted answer, transcript status, next prompt/phase, and response record.
 5. Only after that commit may the tutor acknowledge the answer aloud. The frontend shows a submission as saved only after the matching receipt. A browser loss before receipt is reconciled by `input_id`, never by assuming the answer was lost or accepted.
@@ -152,7 +160,7 @@ The controller enforces the numeric limits. Before learner turn 2, the normal ne
 
 The final roleplay acknowledgment and coaching bridge are short. The visible phase changes with the committed transition; a labeled assessment-pending state is allowed while the score request runs. The first coaching summary reviews useful evidence across the exchange, models an alternative, and identifies one retry priority. Detailed notes retain all distinct meaningful issues rather than only the last learner answer.
 
-Coaching questions stay in coaching. A focused retry has its own ID and 1–2-answer budget, a small situation variation, and the selected target. Its evaluator returns targeted feedback against the original suggestion; it does not replace the original four scores. No automatic success or improvement delta is generated.
+Coaching questions stay in coaching. A focused retry has its own ID and 1–2-answer budget, a small situation variation, and the selected target. Its evaluator returns targeted wording feedback against the original suggestion; it does not replace the original two scores. No automatic success or improvement delta is generated.
 
 ## 5. Turn-taking, capture, and playback
 
@@ -160,13 +168,24 @@ Coaching questions stay in coaching. A focused retry has its own ID and 1–2-an
 
 Use explicit dispatch with a named agent and metadata containing only `session_id`, `guest_id`, and `connection_epoch`. On job entry, fetch and authorize the Redis snapshot instead of trusting the dispatch metadata as session content. Explicit dispatch and container-hosted agent jobs are documented LiveKit paths. [L6, L7]
 
-Use OpenAI semantic VAD with low eagerness as the initial completion detector. Set automatic response creation off; the application requests a turn proposal after the detected boundary. Semantic VAD considers completion context and is designed to wait longer for unfinished speech. Local speech activity detection remains useful for promptly stopping TTS during a learner interruption. Do not independently run a second automatic commit mechanism that can count the same audio twice. [L2, O6]
+Use Silero VAD and LiveKit's text-based `MultilingualModel` turn detector with English STT as the initial completion detector. The detector uses conversation context to distinguish a pause from completion and can run locally on the CPU for custom agent deployments. Bake its assets into the agent image. Tune endpointing against the specified thinking-pause fixtures; STT chunk finalization must not independently commit answers. Local speech activity detection also stops TTS promptly on learner interruption. [L14, L15]
 
-The adapter must translate provider input-item IDs and audio boundaries into application `input_id` values. **I'm done** commits the still-open buffer; it is a no-op for an empty or already sealed buffer. It must also suppress a later duplicate provider endpoint event.
+The adapter must map streaming transcript segments and measured audio boundaries to application `input_id` values. **I'm done** submits the still-open buffer; it is a no-op for an empty or already submitted buffer. It must suppress a later duplicate end-of-turn event. Cap confirmation is a distinct sealed-but-unsubmitted state, not an already accepted answer.
 
-LiveKit documents `interrupt`, clearing input, manual commit, and enabling/disabling audio input. Python also documents committing without generating a reply. However, `on_user_turn_completed` is not a universal hook for provider-side realtime VAD: the current node documentation requires agent-side turn detection for that hook. Implement the provider-event adapter explicitly; do not base correctness on an assumed hook invocation. Confirm its mapping against the pinned SDK in the first integration check. [L3, L4]
+LiveKit documents `interrupt`, clearing input, manual commit, enabling/disabling audio input, and the `on_user_turn_completed` hook for agent-side turn detection. Route completion through the application controller and its validated proposal path; suppress the default response path if a custom path generates the proposal. Confirm the hook, transcript-boundary mapping, and single-response behavior against the pinned SDK in the first integration check. [L3, L4]
 
 Disable speculative/preemptive generation and automatic resumption after false interruptions for the initial release. The latest documented defaults can enable these behaviors, which conflicts with this product's careful turn completion and obsolete-speech rules. An intentional stop cannot trigger automatic replay later. [L3, L9]
+
+### Agreed answer-duration policy
+
+- Start the server-authoritative monotonic timer at the first detected learner speech, not when the microphone opens or the prompt starts. Include thinking pauses inside the answer. Natural completion and **I'm done** can submit earlier.
+- At 60 seconds, show a gentle **Wrap up your answer** cue once. Keep listening; do not speak over the learner or introduce a mandatory countdown.
+- At 120 seconds, stop capture and seal the buffer as `awaiting_limit_confirmation`. Preserve it in agent RAM and show **Use this answer** / **Try again**. Do not automatically count, assess, or discard it. Explicit submission uses the ordinary idempotent input transaction; retry discards the candidate and returns to the same prompt with capture enabled only by that user gesture.
+- Count continuation segments toward the same logical answer's remaining budget, excluding tutor playback time between capture intervals. A premature detector boundary must not reset the answer allowance. Keep the latest accepted revision until a replacement is atomically submitted; an abandoned continuation cannot erase accepted work.
+- A capped answer submitted with **Use this answer** carries a `capture_limited` flag. Evaluate the captured evidence without penalizing the technical cutoff or claiming the learner finished a thought they did not finish. A short answer remains eligible; neither threshold is a scoring criterion.
+- Pause, Mute, Hint, replay, navigation, disconnect, Delete, or expiry clears a still-unsubmitted capped buffer under the normal audio-lifetime rules. Recover the same prompt with an explanation when its RAM is lost. Never claim an unsent capped answer was saved.
+
+LiveKit's `user_turn_limit.max_duration` and `on_user_turn_exceeded` offer turn-limit hooks, but the SDK counter resets when the agent starts speaking and its default hook generates a spoken interruption. Our application answer clock and buffer state are authoritative. Override/suppress the default interruption if using that hook; no tutor utterance may bypass the capped-answer choice or reset a continuation budget. [L3]
 
 ### Interruptions and premature completion
 
@@ -182,6 +201,8 @@ The transition into coaching remains interruptible. A continuation that interrup
 | --- | --- | --- |
 | Start / Resume | On this user gesture, unlock audio; request microphone access only after the previous session's capture has stopped | Claim the guest's active voice ownership, connect, and continue the saved phase; enable publication only after the claim is confirmed |
 | I'm done | Seal the current buffer once; show processing | Submit the same `input_id` used by automatic completion |
+| 120-second answer cap | Stop microphone capture; keep the answer choice visible | Retain sealed audio in RAM without accepting or assessing it |
+| Use this answer / Try again after cap | Explicitly submit the capped answer, or discard it and reopen the current prompt | Resolve the same pending input once; record `capture_limited` on submission and preserve accepted work on abandonment |
 | Pause | Stop microphone track, detach/flush playback, discard unsubmitted audio | Save paused lifecycle and phase; invalidate conversation work and output |
 | Mute | Stop microphone track and discard the current unsubmitted fragment; leave tutor playback running | Disable input, preserve completed answers and pending tutor output |
 | Hint | Stop normal capture/playback; show paused practice | Save pause; generate/play one separately labeled helper utterance; require explicit Resume |
@@ -208,19 +229,19 @@ Capture and playback permissions are checked separately. Show words does not cha
 | Lifecycle | `in_progress`, `paused`, or `completed`; phase `roleplay`, `coaching`, or `retry`; current substate |
 | Ordering | `revision`, `connection_epoch`, `generation_id`, last event sequence, idempotent command receipts |
 | Conversation | Current question ID/text; accepted answer IDs and revisions; submitted transcript and reliability state; tutor messages and delivery state |
-| Pending work | Sealed input ID and status; response request ID and causal answer revision; assessment request ID and frozen exchange hash |
-| Assessment | Four dimension results, evidence, notes, retry priority, model/prompt/rubric versions, availability reasons |
+| Pending work | Sealed input ID and status, including `awaiting_limit_confirmation`; capture duration / `capture_limited` metadata; response request ID and causal answer revision; assessment request ID and frozen exchange hash |
+| Assessment | Two dimension results, transcript evidence, notes, retry priority, model/prompt/rubric versions, availability reasons |
 | Retry/takeaway | Retry IDs and completed turns/feedback; reusable expression and reasoning; text needed for playback |
 | Recovery | Saved phase, capture preference, text-visibility choice, interrupted-fragment notice, previous delivery status |
 | Time | `created_at`, `last_practice_at`, `expires_at`, `completed_at` when applicable |
 
-Audio bytes, base64 audio, provider secrets, and serialized SDK/provider sessions are never fields in this record. An audio-availability marker is advisory and identifies its live worker owner; it cannot make a lost buffer recoverable.
+Audio bytes, base64 audio, provider secrets, and serialized SDK/provider sessions are never fields in this record. A pending-input availability marker is advisory and identifies its live worker owner; it cannot make a lost unsubmitted buffer recoverable. Accepted transcripts suffice for wording assessment.
 
 The accepted count is derived from distinct accepted roleplay answer IDs, not from the number of transcript messages, audio chunks, callbacks, or model calls. Retry counts are derived independently.
 
 ### Ownership and persistence
 
-Issue a random high-entropy guest identifier in an HttpOnly, SameSite=Lax cookie, authenticated with a server secret. Set Secure on HTTPS. A 30-day browser identifier may outlive session content; it does not extend any session's 24-hour retention. Session IDs are random, and every API operation checks the guest association. Redis and privileged LiveKit credentials are never browser-accessible.
+Issue a random high-entropy guest identifier in an HttpOnly, SameSite=Lax cookie, authenticated with a locally generated server secret. Set Secure on HTTPS. A 30-day browser identifier may outlive session content; it does not extend any session's 24-hour retention. Session IDs are random, and every API operation checks the guest association. Redis and privileged LiveKit credentials are never browser-accessible.
 
 Use one Redis key per session, a guest Recent sessions index, and a guest active-voice lease. Use a shared guest hash tag in key names so related atomic operations can remain in one Redis Cluster slot if sharding is introduced later.
 
@@ -246,7 +267,7 @@ All session endpoints are same-origin and cookie-authenticated. Validate Origin 
 | `POST /api/sessions` | Create from a purpose and optional prior session for Practice again; idempotency key prevents duplicate starts |
 | `GET /api/sessions/{id}` | Return snapshot, availability, revision, and expiry; no automatic resume |
 | `POST /api/sessions/{id}/connect` | Explicit Start/Resume; claim ownership and return a short-lived room-scoped token and current epoch |
-| `POST /api/sessions/{id}/commands` | Apply Pause, Resume, Mute, Unmute, I'm done, Hint, Replay, focused retry, Finish, or retry of a failed operation |
+| `POST /api/sessions/{id}/commands` | Apply Pause, Resume, Mute, Unmute, I'm done, capped-answer submit/retry, Hint, Replay, focused retry, Finish, or retry of a failed operation |
 | `GET /api/sessions/{id}/events` | SSE with event sequence and full-state resynchronization when needed |
 | `POST /api/sessions/{id}/heartbeat` | Renew only the matching voice lease; never renew session retention |
 | `POST /api/sessions/{id}/playback` | Authorize playback of a saved tutor message/coaching/takeaway by ID; server resolves the words |
@@ -259,56 +280,56 @@ An event includes `session_id`, `revision`, `sequence`, `connection_epoch`, `typ
 
 LiveKit tokens grant access only to the server-selected room/identity, subscription to tutor audio, and publication of the microphone. They do not grant room administration or camera/screen publication. Use a five-minute initial token lifetime. Token expiry alone does not terminate an existing or reconnecting participant; explicitly remove/revoke stale participants and use new room/identity epochs during recovery. [L10]
 
-## 7. Audio evidence and assessment
+## 7. Transcription evidence and wording assessment
 
 ### Audio path and lifetime
 
-Subscribe to the authorized learner microphone track in the agent and obtain PCM frames through LiveKit's raw audio stream interface. Feed the conversation path and an in-memory evidence buffer from this learner source. Never record a mixed room track: tutor speech, expressions, hints, and replays are excluded by source and capture state. Browser echo cancellation is enabled; audible speaker leakage is treated as evidence uncertainty, not confidently attributed to the learner. [L5]
+Subscribe to the authorized learner microphone track in the agent and obtain PCM frames through LiveKit's raw audio stream interface. Feed streaming STT and a bounded current-answer buffer from this learner source. Never transcribe a mixed room track: tutor speech, expressions, hints, and replays are excluded by source and capture state. Browser echo cancellation is enabled; detected speaker leakage or recognition ambiguity is treated as transcript uncertainty. [L5]
 
-Represent assessment clips as mono PCM16 WAV at 16 kHz with measured sample boundaries. Preserve pauses within an answer; do not remove hesitation, speed up speech, or splice tutor audio into the clip. Attach `turn_id`, `answer_revision`, source-track identity, and capture interval in the manifest. Reference actual turn IDs in the prompt beside their audio inputs.
+Use mono PCM16 at 16 kHz for the current-answer buffer, resampling appropriately for the configured STT interface. Track source identity, capture intervals, and transcript segment IDs under `input_id`. Preserve actual ordering and uncertainty; do not rewrite recognition results to resemble the taught expression. The assessor receives transcripts, never PCM, WAV, or audio references.
 
-Initial resource limits are 120 seconds per unsubmitted answer and 16 MiB of PCM evidence per job, sufficient for three such 16 kHz original answers with headroom. These are memory safeguards, not scoring sufficiency thresholds. Warn near a limit; if it is exceeded, stop and ask the learner to retry a shorter answer. Do not silently truncate or count the fragment as completed. Drop completed original audio before collecting later retries once the original assessment succeeds.
+The answer cap is 120 seconds under section 5, with an 8 MiB application-owned audio-buffer budget per active session, including encoding/copy headroom. A full 120-second PCM16 mono buffer at 16 kHz is 3,840,000 bytes. SDK buffers also need bounded queues and measured memory use. Do not accumulate completed-exchange audio. Unexpected resource exhaustion stops capture with an explicit retryable capture error and no automatic submission.
 
-Discard unsubmitted fragments immediately on Pause, Mute, Hint, replay, navigation, or loss of capture. Keep accepted original clips only while needed for the original assessment. Free them on successful assessment, Delete, expiry, job shutdown, or after a 60-second assessment retry window. Pausing/leaving frees retained clips; an already running bounded assessment may finish from its in-flight input and save a valid result, but cannot start playback.
+Discard unsubmitted fragments immediately on Pause, Mute, Hint, replay, navigation, or loss of capture. Release a submitted answer's audio after its final transcript and acceptance receipt are saved; assessment does not depend on that audio. Hold a capped unsubmitted candidate only while its live session remains active and until submission, retry, a discard event, or expiry. Delete/job shutdown frees all buffers. A pending wording assessment can finish or be retried from Redis independently of audio lifetime, but cannot start unauthorized playback.
 
-Do not use MediaRecorder persistence, IndexedDB audio storage, filesystem temporary WAVs, Redis audio blobs, LiveKit Egress, or provider Files API uploads. WAV encoding and base64 request construction occur in memory. Raw frames elsewhere in SDK histories/caches must be released too. Disable core dumps and do not deliberately use disk-backed audio spooling; host-level swap is an infrastructure property, not a promise of cryptographic memory erasure.
+Do not use MediaRecorder persistence, IndexedDB audio storage, filesystem temporary WAVs, Redis audio blobs, LiveKit Egress, or provider Files API uploads. Raw frames elsewhere in SDK histories/caches must be released too. Disable core dumps and do not deliberately use disk-backed audio spooling; host-level swap is an infrastructure property, not a promise of cryptographic memory erasure.
 
 ### Assessment input
 
-The request contains the product rubric, purpose/actual situation/roles, the original exchange's tutor context, every accepted original learner turn, transcript reliability, and available learner audio. Ask the evaluator to distinguish learner delivery from noise, prioritize intelligibility over accent imitation, accept normal thinking pauses, and assess meaning rather than exact expression reproduction.
+The request contains the two-dimension product rubric, purpose/actual situation/roles, original tutor context, every accepted original learner turn and revision, transcript reliability, and any `capture_limited` flags. Ask the evaluator to assess meaning and wording rather than exact expression reproduction. State that audio is unavailable and that no delivery, fluency, pronunciation, confidence, stress, or vocal-tone claim is permitted. A capped answer is judged only on supported wording without penalizing its forced ending.
 
-Use `gpt-audio-1.5` with Chat Completions, audio input parts and text/function output, `store=false`, and a single assessment-result function. This is not a text-only Responses request with filenames attached. The audio itself must reach the evaluator. No function may trigger application effects beyond returning assessment data. [O2, O3, O7]
+Use a standalone `inference.LLM` request with `ASSESSMENT_MODEL`, an isolated chat context, and a typed assessment-result schema/tool. Validate the complete result with Pydantic and reference checks before saving it. Do not depend on a model's schema support to establish factual correctness. The call authenticates using LiveKit credentials and returns data only; it has no application-effect tools. [L13]
 
 ### Result schema
 
 | Field | Rule |
 | --- | --- |
 | `exchange_id`, `exchange_revision`, `rubric_version` | Must match the frozen request; server attaches authoritative IDs |
-| `dimensions` | Exactly `fluency`, `pronunciation`, `naturalness`, `workplace_tone` |
-| Per dimension `status` | `scored`, `not_enough_speech`, `audio_unclear`, or `assessment_unavailable` |
+| `dimensions` | Exactly `naturalness`, `workplace_tone`; reject audio-dimension fields |
+| Per dimension `status` | `scored`, `not_enough_detail`, `transcript_unclear`, or `assessment_unavailable` |
 | Per dimension `score` | Integer 1–5 only for `scored`; otherwise null |
-| Per dimension `basis` | `audio`, `wording`, or `audio_and_wording`; consistent with the available evidence |
+| Per dimension `basis` | Always `wording`; visible explanation states the assessment's basis |
 | Per dimension `explanation` and `evidence` | A useful explanation and at least one real original-turn reference for each score |
-| Evidence entry | Turn ID, evidence kind, observed feature; an optional exact wording quote or measured clip interval |
+| Evidence entry | Original turn ID and answer revision, wording observation, and an optional exact transcript quote; suggestions are separate fields |
 | `strengths`, `issues` | Evidence-linked observations; each issue includes a concrete suggestion, example, and reason |
 | `retry_priority` | One actionable issue or supported refinement/transfer challenge, linked to the notes |
 | `spoken_summary`, `modeled_example`, `takeaway` | Short spoken coaching and reusable learning content grounded in the exchange |
 
-The LLM decides whether usable evidence is sufficient for each dimension. Code validates the schema, real evidence IDs, clip bounds, quote provenance, and audio availability. It rejects missing/corrupt audio and structurally unsupported claims about delivery; evaluating the truth of an audible observation remains a model/human-review responsibility. It does not assign scores from words per minute, a minimum duration, a keyword checklist, or hidden per-turn grades.
+The LLM decides whether reliable wording is sufficient for each dimension. Code validates the schema, evidence IDs/revisions, quote provenance, and transcript availability. It rejects audio bases/dimensions and unresolved evidence. Semantic checks and human review verify that free-text comments do not invent delivery observations; schema validation alone cannot prove that. Code does not assign scores from word counts, STT confidence, duration, a keyword checklist, or hidden per-turn grades.
 
-Transcription remains fallible. Do not instruct STT to correct the learner's grammar or expand unclear words. When the evaluator hears a discrepancy, record uncertainty or an explicitly evidence-linked transcript correction before using that wording in feedback. An STT mismatch is not itself a pronunciation error. Preserve the original transcription and correction provenance; do not silently rewrite the learner's contribution to fit the score.
+Transcription remains fallible. Do not instruct STT to correct the learner's grammar or expand unclear words. Preserve recognized text and uncertainty separately. The evaluator cannot check it against audio or assert a recognition mistake as fact. Treat unclear or contradictory wording cautiously, withhold unsupported scores, and ask for clarification within the remaining turn budget. A later coaching clarification does not silently rewrite original scores. No recognition mismatch is a pronunciation error.
 
-Fluency and Pronunciation require usable original learner audio. Naturalness can use reliable wording and context. Workplace tone may use wording alone, but the explanation must state that limited basis and cannot claim intonation or warmth of delivery. Silence or isolated acknowledgments cannot produce a fabricated complete scorecard. The four scores are never averaged into an overall grade.
+Naturalness and Workplace tone use reliable wording and context. Tone explanations may discuss the politeness or directness of a quoted phrase, but cannot claim intonation or warmth of delivery. Silence or isolated acknowledgments cannot produce a fabricated complete scorecard. The two scores are never averaged into an overall grade.
 
-If a model response is malformed or references nonexistent evidence, retry once with the validation errors and the same evidence. Never silently coerce a score, invent a quotation, or ask a text-only model to repair a missing audio judgment. Valid independently supported dimensions may be preserved; failed dimensions remain unavailable. Surface **Not enough speech**, **Audio unclear**, or **Assessment unavailable** accurately.
+If a model response is malformed or references nonexistent evidence, retry once with the validation errors and the same evidence. Never silently coerce a score or invent a quotation. Valid independently supported dimensions may be preserved; failed dimensions remain unavailable. Surface **Not enough detail**, **Transcript unclear**, or **Assessment unavailable** accurately.
 
 ### Recovery and immutability
 
 Freeze the original exchange only after its final answer/continuation boundary has resolved. Store a hash of its answer IDs, answer revisions, and context. Assessment writes require the same hash and request ID, a still-existing session, and a valid expiry; they do not require the learner to remain on the feedback page.
 
-A successful original score is immutable. A retry of an unavailable assessment may fill missing dimensions from still-available original evidence, but does not overwrite already obtained scores. Focused retry audio belongs to a separate evaluation and can never fill gaps in the original exchange.
+A successful original score is immutable. A retry of an unavailable assessment may fill missing dimensions from the saved original transcript, but does not overwrite already obtained scores. Focused retry transcripts belong to a separate targeted evaluation and can never fill gaps in the original exchange.
 
-If recovery loses any original audio required for a pending holistic audio judgment, leave the affected dimensions unavailable. Do not present a judgment on the remaining clip as though it covered all original audio. Preserve saved scores and reliable wording-based feedback. Offer a fresh speaking exchange through Practice again when a full new assessment is needed; a focused retry remains a targeted coaching activity.
+After worker restart, reconstruct the pending assessment from the frozen Redis exchange. Start one replacement request under a new attempt ID; stale attempt results fail the conditional write. Resume assessment independently of microphone activation. If Redis data is lost, do not recreate the exchange. Loss of raw audio does not invalidate saved wording or its assessment.
 
 If Finish is pressed before any accepted answer, complete the session with no scores and a clearly labeled expression reminder, without claiming achievement. If accepted work exists, Finish freezes only that work, permits bounded assessment/result completion, and preserves any available feedback. A partial in-progress answer is excluded.
 
@@ -327,11 +348,11 @@ The browser also owns a local playback generation. Any stop action detaches or f
 | Saved condition | Recovery behavior |
 | --- | --- |
 | Capturing an unfinished answer | Discard the fragment; show the same current prompt and accepted count, paused |
+| Capped answer awaiting submission choice | Preserve the candidate only with its healthy live owner; otherwise discard it and return paused to the same prompt with an explanation |
 | Sealed input without accepted receipt | Reconcile by input ID; finish its commit if a live owner still has the evidence, otherwise report it was not saved and repeat the prompt |
 | Accepted answer, no committed tutor reply | Keep the answer; explicitly resume/retry generation once from saved context and the same response operation |
 | Tutor reply committed, playback incomplete | Preserve its words and interrupted/unknown delivery state; offer/replay those words on explicit Resume without generating a new question |
-| Assessment pending, original audio still owned | Allow bounded assessment completion or an explicit retry |
-| Assessment pending, audio lost | Preserve completed text/work and saved dimensions; mark unsupported pending audio judgments unavailable |
+| Assessment pending, saved transcript available | Allow bounded completion or retry from the frozen Redis exchange, including after worker restart |
 | Coaching/retry paused | Restore that phase and its current question/target; do not restart roleplay |
 | Completed | Read-only review with optional audio playback; Practice again creates another session |
 | Deleted/expired/missing Redis data | Return an unavailable-session screen and fresh-start action; never recover fabricated history |
@@ -375,18 +396,18 @@ These are release targets to measure, not observed results. Measure on a stable 
 
 At 3 seconds without a reply, show truthful processing text. At an operation deadline, expose Retry and exit controls. A partial audible response is never automatically replayed as a whole on a network retry. Upstream request cancellation does not imply that billing stopped; record duplicate/canceled requests in usage metrics.
 
-Thinking-pause tests are separate from latency on clearly finished speech. Do not tune endpointing to cut off normal learner planning just to meet the reply metric. If low-eagerness semantic VAD cannot meet both criteria, adjust the detector/adapter and rerun the same audio set; do not change the interaction to mandatory push-to-talk.
+Thinking-pause tests are separate from latency on clearly finished speech. Do not tune endpointing to cut off normal learner planning just to meet the reply metric. If the selected turn detector cannot meet both criteria, adjust its endpointing/adapter and rerun the same audio set; do not change the interaction to mandatory push-to-talk.
 
 | Failure | Required technical response |
 | --- | --- |
 | Microphone denied/missing | Do not connect as listening; explain access retry and offer expression exploration |
 | LiveKit/agent unavailable | Timeout connection, release ownership, preserve session, offer reconnect |
-| OpenAI auth/quota/model error | Redacted actionable error; no model substitution, scripted answer, or fabricated score |
+| LiveKit Inference auth/quota/model error | Redacted actionable error; no direct-provider fallback, scripted answer, or fabricated score |
 | Transcription unavailable | Keep a sealed input pending while RAM exists; retry that operation, or ask to repeat after evidence is lost |
 | Invalid/failed turn proposal | Preserve accepted work; retry the same causal operation without double-counting |
 | TTS or browser autoplay failure | Retain generated words; mark delivery failed and offer explicit replay/audio unlock |
 | Redis unavailable | Stop accepting/acknowledging new answers; pause media because state cannot be safely saved |
-| Assessment timeout/invalid output | Preserve exchange and valid feedback; show affected unavailable dimensions and retry only with original evidence |
+| Assessment timeout/invalid output | Preserve exchange and valid feedback; show affected unavailable dimensions and retry from saved original wording |
 
 ## 10. Docker and configuration contract
 
@@ -396,10 +417,10 @@ Thinking-pause tests are separate from latency on clearly finished speech. Do no
 | --- | --- | --- |
 | `web` | Multi-stage Node 22 build of the frontend; Nginx serves static assets and proxies `/api` including SSE without buffering | Host `${APP_PORT}` → container 80; HTTP health path |
 | `api` | Python backend image running FastAPI on 8000 | Compose network only; liveness and readiness that checks Redis and agent availability |
-| `agent` | Same Python image, separate LiveKit agent-server command in non-development mode | Outbound connections to LiveKit/OpenAI; private SDK health endpoint, normally 8081 [L7] |
+| `agent` | Same Python image, separate LiveKit agent-server command in non-development mode | Outbound connections to LiveKit Cloud/Inference; private SDK health endpoint, normally 8081 [L7] |
 | `redis` | Pinned Redis 7.4 image, snapshots/AOF disabled, bounded memory with `noeviction` | Compose network only; `redis-cli ping`; no host port or persistent volume |
 
-The agent registers with LiveKit Cloud; it is not deployed to LiveKit's agent-hosting platform for this release. The browser connects directly to the Cloud media endpoint while API/SSE traffic goes through the local web service. Do not add a second, accidental LiveKit-server Redis dependency or imply that Compose starts external provider infrastructure.
+The agent registers with LiveKit Cloud; it is not deployed to LiveKit's agent-hosting platform for this release. The browser connects directly to the Cloud media endpoint while API/SSE traffic goes through the local web service. LiveKit Inference handles all remote model calls. Do not add a local LiveKit media server, a GPU service, a second Redis dependency, or imply that Compose starts external model infrastructure.
 
 Read configuration from the root `.env` through Compose's explicit environment mapping. Inject only the values each service needs. Secrets never become Vite variables, build arguments, frontend assets, logs, or git content. Frontend API URLs are relative; the API returns the public LiveKit URL and a scoped token at connection time. All session/TTS HTTP responses disable caching; Redis is not a public service.
 
@@ -416,12 +437,12 @@ LIVEKIT_URL=
 LIVEKIT_API_KEY=
 LIVEKIT_API_SECRET=
 LIVEKIT_AGENT_NAME=workplace-english-tutor
-OPENAI_API_KEY=
-REALTIME_MODEL=gpt-realtime-2
-TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
-ASSESSMENT_MODEL=gpt-audio-1.5
-TTS_MODEL=gpt-4o-mini-tts
-TTS_VOICE=marin
+CONVERSATION_MODEL=google/gemini-3.5-flash
+TRANSCRIPTION_MODEL=deepgram/nova-3
+TRANSCRIPTION_LANGUAGE=en
+ASSESSMENT_MODEL=google/gemini-3.5-flash
+TTS_MODEL=cartesia/sonic-3
+TTS_VOICE=a167e0f3-df7e-4d52-a9c3-f949145efdab
 REDIS_URL=redis://redis:6379/0
 SESSION_TTL_SECONDS=86400
 VOICE_LEASE_SECONDS=15
@@ -432,38 +453,37 @@ LOG_LEVEL=INFO
 
 Validate the retention setting so it cannot exceed 86,400 seconds. Product turn limits and rubric anchors are versioned domain rules, not environment knobs. Default privacy settings always disable recordings and payload logs; do not introduce an undocumented switch that retains learner audio.
 
-The README must document generating a random guest-cookie secret, obtaining LiveKit/OpenAI credentials, required model access and billing, and the startup command:
+The README must document generating a random guest-cookie secret, obtaining the LiveKit Cloud URL/key/secret, enabling sufficient Inference access/credit, and the startup command. No separate model-provider account/key belongs in the setup:
 
 ```sh
 docker compose up --build
 ```
 
-Health probes do not incur model calls. Agent availability means a fresh worker heartbeat after successful LiveKit registration and local initialization, not just an open health-check port. A separate documented preflight command in the backend image verifies the configured provider operations using non-personal fixture content, identifies unsupported model/options, and prints redacted results. Record that it makes billable test calls. Credentials alone are not proof that all four model roles are enabled.
+Health probes do not incur model calls. Agent availability means a fresh worker heartbeat after successful LiveKit registration and local initialization, not just an open health-check port. A separate documented preflight command in the backend image verifies STT, LLM conversation, wording assessment, and TTS through LiveKit Inference using non-personal fixture content. It identifies unsupported model/options and prints redacted results. Record that it makes billable test calls. A valid media connection alone does not prove Inference access.
 
 Build dependencies and necessary local model assets into the image. Use lockfile-based installation, non-root application processes, `.dockerignore` entries for `.env`/`.git`/unrelated design artifacts, and no startup dependency installation. Configure a bounded shutdown grace period: fence new work, mark owned sessions paused, stop media, finish/cancel bounded result work, and free audio. API and agent restarts must not rely on local files for session restoration.
 
 ### Clean-checkout acceptance
 
-A reviewer copies `.env.example` to `.env`, supplies credentials/secret, and runs Compose without installing Python, Node, Redis, or the LiveKit CLI on the host. The app serves on the documented port and performs a real conversation and real audio assessment. Document optional phone HTTPS setup separately. Missing credentials produce a clear setup error, never a simulated connected experience.
+A reviewer copies `.env.example` to `.env`, supplies only LiveKit external credentials and the generated cookie secret, and runs Compose without installing Python, Node, Redis, or the LiveKit CLI on the host. The app serves on the documented port and performs a real spoken conversation and real wording assessment. Run this check with every direct-provider API key absent. All remote model requests must target LiveKit Inference; an SDK's internal OpenAI-compatible HTTP client is acceptable and must not be confused with a direct OpenAI service dependency. Document optional phone HTTPS setup separately. Missing credentials produce a clear setup error, never a simulated connected experience.
 
 ## 11. Data handling and operational visibility
 
 | Processor/store | Data sent or held | Policy for this implementation |
 | --- | --- | --- |
 | Browser | Live mic frames, transient playback, rendered transcript/results, guest cookie | No learner recording persistence; stop tracks explicitly; no session-content localStorage/IndexedDB cache |
-| Agent RAM | Learner clips, provider context, in-flight assessment | Bounded lifetime from section 7; clear buffers and SDK contexts on completion/cancellation |
+| Agent RAM | Current-answer audio, streaming transcript, model context, in-flight text assessment | Bounded lifetime from section 7; release accepted audio and clear obsolete SDK contexts |
 | Redis | Session text, scores, evidence descriptions, timestamps, access/ordering state | Activity-based expiry ≤ 24 hours; no disk persistence in take-home configuration |
 | LiveKit Cloud | Live media transport and connection metadata | No Egress; `AgentSession.start(record=False)` to disable audio/transcript/trace/log collection for each session; document Cloud project setting too [L11] |
-| OpenAI Realtime | Live learner audio, context, model turn proposals | Direct API processing; do not promise the application's 24-hour policy applies to provider systems |
-| OpenAI transcription | Submitted learner audio clips | The checked data-controls table lists no abuse-monitoring or application-state retention for `/v1/audio/transcriptions` [O7] |
-| OpenAI Chat Completions | Original learner audio/context for assessment and targeted retry evaluation | `store=false`, text/function output only; default abuse-monitoring rules still apply [O7] |
-| OpenAI speech endpoint | Approved tutor/coaching/example text | Provider processing under its speech-endpoint data policy [O7] |
+| LiveKit Inference STT | Learner audio for transcription | LiveKit's documented zero-data-retention policy for Inference, including its underlying providers [L2] |
+| LiveKit Inference LLM | Transcript/context for conversation, wording assessment, and targeted retry feedback | Same Inference policy; no learner audio supplied to the LLM [L2] |
+| LiveKit Inference TTS | Approved tutor/coaching/example text | Same Inference policy; stock voice, no voice-cloning uploads [L2] |
 
-OpenAI's checked policy says API data is not used for training unless opted in; default abuse-monitoring retention for Realtime, Chat Completions, and speech generation is up to 30 days, subject to stated exceptions. `store=false` does not mean Zero Data Retention. ZDR requires eligibility/approval and is not assumed. Chat Completions audio output can create one-hour application state; this design asks that endpoint for text/function output, while using the speech endpoint for spoken delivery. [O7]
+LiveKit documents zero data retention by default for all Inference LLM/STT/TTS models and plans: prompts, audio, and outputs are not stored, logged, or used for training by LiveKit or its underlying inference providers. This applies to Inference traffic, not the application's Redis records or separately enabled Agent Insights. Document the actual route and recheck the policy at release. [L2]
 
 LiveKit's current observability documentation says collection may include local recordings uploaded after the session and a 30-day Cloud retention window. Explicitly passing `record=False` is necessary; merely avoiding an Egress call is insufficient. Verify the SDK produces no local recording or session-report files and uploads no content telemetry with the chosen configuration. Do not copy tutorial transcript-printing examples into application logs. [L11, L12]
 
-Before microphone use, show a short disclosure that speech is processed by LiveKit/OpenAI, application history is temporary, and the tutor voice is AI-generated. Link to a concise provider/data explanation. Delete removes application-held session content and stops live work; it does not claim to delete external providers' retained data.
+Before microphone use, show a short disclosure that speech is processed through LiveKit and its model providers, application history is temporary, and the tutor voice is AI-generated. Link to a concise provider/data explanation and identify the selected STT/LLM/TTS providers there. Delete removes application-held session content and stops live work; it does not claim to operate external providers' deletion systems.
 
 Log only operation IDs, phase, error category, timing, numeric usage, and counters. Never log raw prompts, transcripts, tool arguments containing speech, base64, provider tokens, cookie values, or full session reports. Redact SDK/HTTP exception bodies. Retain no user-content analytics in the take-home. Track active jobs, model errors, timeouts, lease loss, rejected stale writes, and assessment availability to diagnose behavior.
 
@@ -471,32 +491,32 @@ Log only operation IDs, phase, error category, timing, numeric usage, and counte
 
 ### First integration gate
 
-Before building all screens, demonstrate one real purpose through the selected stack: generated opening → two spoken learner answers → controlled coaching transition → four audio-supported dimensions → Finish → refresh and Review. Also demonstrate a pause during an answer and a barge-in. This is an implementation acceptance gate, not a claim that the prototype already exists.
+Before building all screens, demonstrate one real purpose through the selected stack using LiveKit credentials alone: generated opening → two spoken learner answers → controlled coaching transition → two wording-supported dimensions → Finish → refresh and Review. Also demonstrate a pause during an answer, a barge-in, and the capped-answer submit/retry choices. This is an implementation acceptance gate, not a claim that the prototype already exists.
 
-Verify the exact pinned SDK's semantic-VAD events, application-controlled response creation, text-output/TTS combination, audio boundaries, interruption flushing, and recording opt-out. If an API mapping is unsupported, resolve it in the adapter and update this specification. Do not silently fall back to text-only scoring, direct OpenAI browser transport that bypasses LiveKit, or prepared successful conversations.
+Verify the exact pinned SDK's STT finalization, turn detector, application-controlled response generation, Inference text/TTS combination, audio boundaries, interruption flushing, and recording opt-out. If an API mapping is unsupported, resolve it in the adapter and update this specification. Do not silently switch to a direct-provider API, bypass LiveKit browser transport, or use prepared successful conversations.
 
 ### Test layers
 
 | Layer | What it establishes |
 | --- | --- |
-| Domain tests with a controllable clock and real Redis integration cases | Atomic state transitions, 2/3 and 1/2 budgets, idempotent input/commands, activity expiry, deletion races, ownership, stale-result rejection |
-| Provider-contract tests | Audio reaches the evaluator; valid/invalid function outputs; transcript-ID mapping; no unsupported score coercion; deadlines and error mapping |
+| Domain tests with a controllable clock and real Redis integration cases | Atomic state transitions, 2/3 and 1/2 budgets, 60/120-second behavior, continuation budgets, idempotent input/commands, expiry, deletion races, ownership, stale-result rejection |
+| Inference-contract tests | LiveKit-only authentication; valid/invalid result schemas; transcript-ID mapping and quote provenance; no audio dimensions/bases; deadlines and error mapping |
 | LiveKit text debugger / agent tests | Answer-dependent reasoning, phase context, goal judgment, coaching questions, help classification, and supported tool behavior; these do not prove audio quality |
-| Real audio integration checks | End detection, barge-in, physical-device playback/capture, TTS delivery, assessment evidence, and recovery boundaries |
+| Real audio integration checks | End detection, barge-in, physical-device playback/capture, TTS delivery, transcript fidelity, and recovery boundaries |
 | Browser tests | Portrait bounds, navigation, controls, event reordering, local media stops, completed review without capture, and session isolation |
 | Clean Compose smoke test | Host-independent startup, actual providers, Redis-backed recovery, redacted failure messages, and no recording files |
 
 ### Representative audio set
 
-Create at least 24 short exchange fixtures across the nine purposes, including at least eight human-recorded examples from consenting speakers with varied accents. Synthetic speech can help test noise and delivery controls but cannot be the only pronunciation benchmark. These are explicit test assets with provenance, not retained learner sessions.
+Create at least 24 short exchange fixtures across the nine purposes, including at least eight human-recorded examples from consenting speakers with varied accents. Human audio checks STT fidelity and turn handling; text fixtures check wording feedback. These are explicit test assets with provenance, not retained learner sessions or a pronunciation benchmark.
 
-Cover clear short answers, longer multi-sentence answers, ordinary 1–3-second thinking pauses, filler/restarts, a deliberately unfinished clause, a completed concise answer, silence, background noise, isolated acknowledgments, intelligible accented speech, a specific unclear sound/stress example, identical wording with different tone, tutor leakage, mid-answer Pause, barge-in, and continuation after premature endpointing.
+Cover clear short answers, longer multi-sentence answers, ordinary 1–3-second thinking pauses, filler/restarts, a deliberately unfinished clause, a completed concise answer, silence, background noise, isolated acknowledgments, varied accents, recognition ambiguity, identical wording spoken with different intonation, tutor leakage, mid-answer Pause, barge-in, and continuation after premature endpointing. When the recognized wording/context is identical, intonation must not cause different assessment claims; it is outside the assessor's input.
 
-For turn-taking, run at least ten pause/continuation cases and ten finished-answer/manual-submit cases. Require no double counts, no substantive response during designated ordinary thinking pauses in at least 9/10 cases, and reliable single submission with **I'm done** in all manual-submit cases. Run at least ten intentional interruptions: no obsolete utterance may resume. Measure the latency targets separately.
+For turn-taking, run at least ten pause/continuation cases and ten finished-answer/manual-submit cases. Require no double counts, no substantive response during designated ordinary thinking pauses in at least 9/10 cases, and reliable single submission with **I'm done** in all manual-submit cases. Run at least ten intentional interruptions: no obsolete utterance may resume. Verify first-speech timing, one 60-second visual cue, capture stop at 120 seconds, explicit submit/retry, cap/end-event races, same-answer continuation budgets, and loss of a capped candidate on recovery. Duration must not award or deduct points. Measure latency separately.
 
-For assessment, two human reviewers familiar with the rubric annotate per-dimension sufficiency and defensible score ranges before seeing model results. Require all eligible, clear full-evidence fixtures to exercise all four dimensions; all silence/acknowledgment-only fixtures to avoid a fabricated full scorecard; all evidence references to resolve; and no invented audio/quotation claims in the release fixture set. At least 80% of supported dimension judgments should fall within the agreed range, with every larger disagreement reviewed and addressed. These are formative-feedback acceptance checks, not a claim of validated proficiency measurement.
+For assessment, two human reviewers familiar with the rubric annotate wording sufficiency and defensible score ranges before seeing model results. Require eligible full-evidence fixtures to exercise both dimensions; silence/acknowledgment-only fixtures to avoid a fabricated full scorecard; uncertain transcription to be treated cautiously; every evidence reference/quote to resolve; and no delivery or invented quotation claims. At least 80% of supported dimension judgments should fall within the agreed range, with larger disagreements reviewed and addressed. These are formative-feedback acceptance checks, not validated proficiency measurement.
 
-Repeat a representative six-exchange subset three times to inspect instability in availability and score judgments. Fix prompts/model choices when results are inconsistent or unfair to an intelligible accent. For voice delivery, human reviewers listen to real generated roleplay, coaching, and modeled expressions across all purposes; reject rushed, monotonous, mis-stressed, or context-inappropriate examples. Prepared mockup clips cannot satisfy this check.
+Repeat a representative six-exchange subset three times to inspect instability in availability and score judgments. Fix prompts/model choices when results are inconsistent or depend on unprovided delivery cues. Check STT recognition across accents. For tutor voice delivery, human reviewers listen to real generated roleplay, coaching, and modeled expressions across all purposes; reject rushed, monotonous, mis-stressed, or context-inappropriate examples. Prepared mockup clips cannot satisfy this check.
 
 ### Product acceptance mapping
 
@@ -507,24 +527,24 @@ Repeat a representative six-exchange subset three times to inspect instability i
 | A03 | Live audio conversations: generated opening plus follow-ups that use actual learner details; count learner answers only |
 | A04 | Two-answer goal-achieved case closes with acknowledgment/bridge and no outstanding question |
 | A05 | Three-answer goal-not-demonstrated case cannot produce a fourth roleplay prompt |
-| A06 | Representative pause audio plus repeated/manual I'm done events; one accepted input |
+| A06 | Representative pause audio, manual submission, 60/120-second cue/cap, continuation timing, and cap-choice races; one accepted input |
 | A07 | Real barge-in and same-answer continuation; obsolete playback canceled and count remains correct |
 | A08 | Control matrix tests, including helpers during Pause and no helper audio in evidence |
-| A09 | Clear-audio rubric fixtures exercise four separate 1–5 scores and evidence; no aggregate |
-| A10 | Insufficient/unclear/noisy fixtures produce dimension-specific availability reasons |
+| A09 | Reliable-wording fixtures exercise two separate 1–5 scores and transcript evidence; no aggregate/audio dimensions |
+| A10 | Insufficient/unclear transcripts produce dimension-specific availability reasons |
 | A11 | Retry ends after one or two answers; feedback cites new evidence; original scores unchanged |
 | A12 | Finish with zero/one accepted answers and during capture; no fabricated completion or partial-answer score |
 | A13 | Refresh/network loss at each pending-work boundary; snapshot restore paused; no automatic capture or duplicate answer |
 | A14 | Provider timeout/auth/quota, TTS failure, autoplay denial, and invalid assessment injections |
 | A15 | Controlled-clock expiry and Delete/result races; list/review/heartbeats do not extend retention |
-| A16 | Fresh checkout/root `.env`/Compose demonstration plus assignment packaging checklist |
+| A16 | Fresh checkout/root `.env`/Compose demonstration with only LiveKit external credentials plus assignment packaging checklist |
 | A17 | Resume roleplay, coaching, and retry with exact saved situation/prompt/count |
 | A18 | Review without mic; Practice again uses distinct session/opening and fresh evidence while preserving prior results |
 | A19 | Two tabs and two sessions competing for ownership; old room fenced before new capture is authorized |
 | A20 | Physical-device listening review of natural rhythm, intonation, role-appropriate tone, and modeled delivery |
 | A21 | A fixture with different issues in early and late answers produces both useful notes and one retry priority |
 
-Release gates additionally include a worker restart while Redis survives, Redis loss with honest unavailable history, and log/filesystem inspection for accidental learner recording/transcript copies. Mocks establish deterministic mechanics; only actual model and audio runs establish the voice and assessment behavior.
+Release gates additionally include a worker restart while Redis survives and pending wording assessment resumes, Redis loss with honest unavailable history, and log/filesystem inspection for accidental learner recording/transcript copies. Mocks establish deterministic mechanics; actual Inference calls and audio runs establish wording assessment and voice behavior respectively.
 
 ## 13. Submission and scaling
 
@@ -535,8 +555,8 @@ The README's 10,000-concurrent-session discussion should cover:
 - Scale stateless API instances separately from long-lived agent jobs; use managed LiveKit media, warm agent capacity, measured per-job resource usage, and graceful draining. A request-per-second estimate is not an agent concurrency estimate.
 - Use shared Redis with high availability, sharding by guest, atomic ownership, capacity planning, and a documented persistence/deletion strategy. Browser recovery and storage disaster recovery remain different guarantees.
 - Obtain sufficient realtime connection and model quotas; separately budget transcription, TTS, and bursty end-of-exchange assessments. Apply admission control instead of accepting sessions that cannot receive timely speech.
-- Keep audio assessment close to the owning process or use bounded ephemeral transfer. A durable queue of job IDs cannot recover lost audio; persisting recordings to solve that would require a product/data-policy change.
-- Bound PCM memory: at the 16 MiB limit, 10,000 simultaneously full evidence buffers alone approach 156 GiB before SDK/model context and process overhead. Measure actual occupancy, release buffers promptly, and distribute jobs accordingly.
+- Run wording assessment from saved immutable transcript snapshots so it can move across workers. Any future durable queue contains bounded job references and must honor session expiry/deletion; it does not need learner recordings.
+- Bound current-answer PCM memory: at an 8 MiB application-buffer budget, 10,000 simultaneously full buffers alone approach 78 GiB before SDK/model context and process overhead. Measure actual occupancy, release accepted audio promptly, and distribute jobs accordingly.
 - Measure regional RTT, p95 speech latency, assessment availability, costs, and active jobs; scale down only after draining. Keep content-free metrics and evaluate voice quality after provider/model changes.
 
 The first release implements neither a distributed job-queue system nor Kubernetes. Its module boundaries, explicit state ownership, and acceptance checks preserve a path to those changes without adding them to the take-home.
@@ -548,21 +568,18 @@ Official documentation was consulted on 2026-09-26. Documentation establishes th
 | Reference | Source and use |
 | --- | --- |
 | L1 | [LiveKit pipeline types](https://docs.livekit.io/agents/models/pipelines.md): half-cascade, direct realtime, and transcription-pipeline tradeoffs |
-| L2 | [LiveKit OpenAI Realtime plugin](https://docs.livekit.io/agents/models/realtime/plugins/openai.md): configuration, semantic VAD, separate TTS, and recovered-history caveat |
+| L2 | [LiveKit Inference](https://docs.livekit.io/agents/models/inference.md): model catalog, consolidated access/billing, and zero data retention |
 | L3 | [LiveKit turns and interruptions](https://docs.livekit.io/agents/logic/turns.md): manual controls, input clearing, and false-interruption behavior |
 | L4 | [LiveKit nodes and hooks](https://docs.livekit.io/agents/logic/nodes.md): restrictions on the realtime user-turn-completed hook |
 | L5 | [LiveKit raw media tracks](https://docs.livekit.io/transport/media/raw-tracks.md): learner-track PCM frame access |
 | L6 | [LiveKit explicit dispatch](https://docs.livekit.io/agents/server/agent-dispatch.md): named agent jobs and metadata |
 | L7 | [LiveKit self-hosted agent deployment](https://docs.livekit.io/deploy/custom/deployments.md): Docker, outbound registration, and health endpoint |
-| L8 | [LiveKit OpenAI TTS](https://docs.livekit.io/agents/models/tts/openai.md): speech model, voice, and delivery instructions |
+| L8 | [LiveKit Cartesia TTS](https://docs.livekit.io/agents/models/tts/cartesia.md): Inference model/voice catalog and supported delivery controls |
 | L9 | [LiveKit sessions](https://docs.livekit.io/agents/logic/sessions.md) and [events](https://docs.livekit.io/reference/agents/events.md): lifecycle, transcripts, speculative generation, and errors |
 | L10 | [LiveKit tokens and grants](https://docs.livekit.io/frontends/reference/tokens-grants.md): room permissions, reconnect expiry, and revocation |
 | L11 | [LiveKit Agent Insights](https://docs.livekit.io/testing/observability/insights.md): recording defaults, `record=False`, and Cloud observability retention |
 | L12 | [LiveKit data hooks](https://docs.livekit.io/testing/observability/data.md): session reports and content telemetry |
-| O1 | [OpenAI GPT-Realtime-2](https://developers.openai.com/api/docs/models/gpt-realtime-2): audio/text modalities, reasoning, and tool support |
-| O2 | [OpenAI GPT-Audio-1.5](https://developers.openai.com/api/docs/models/gpt-audio-1.5): audio input and lack of Structured Outputs support |
-| O3 | [OpenAI audio guide](https://developers.openai.com/api/docs/guides/audio): audio Chat Completions implementation path |
-| O4 | [OpenAI text-to-speech](https://developers.openai.com/api/docs/guides/text-to-speech): voices and speech generation |
-| O5 | [OpenAI transcription API](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create): supported model and WAV input |
-| O6 | [OpenAI semantic VAD](https://developers.openai.com/api/docs/guides/realtime-vad#semantic-vad): completion behavior and eagerness |
-| O7 | [OpenAI data controls](https://developers.openai.com/api/docs/guides/your-data): endpoint-specific retention, training policy, and `store=false` limitations |
+| L13 | [LiveKit LLM overview](https://docs.livekit.io/agents/models/llm.md) and [Gemini Inference](https://docs.livekit.io/agents/models/llm/gemini.md): standalone requests, model catalog, and options |
+| L14 | [LiveKit Deepgram STT](https://docs.livekit.io/agents/models/stt/deepgram.md): Nova-3 through Inference, language and transcription controls |
+| L15 | [LiveKit turn detector](https://docs.livekit.io/agents/logic/turns/turn-detector.md): text detector, STT/VAD requirements, and local execution |
+| L16 | LiveKit Agents source inspected on 2026-09-26: [Inference LLM serialization](https://github.com/livekit/agents/blob/main/livekit-agents/livekit/agents/inference/llm.py) and [OpenAI-compatible context conversion](https://github.com/livekit/agents/blob/main/livekit-agents/livekit/agents/llm/_provider_format/openai.py). The standard path skips audio content; this is not a claim about every possible gateway/custom API. Recheck against the pinned implementation version. |

@@ -2,7 +2,7 @@
 
 Date: 2026-09-26
 
-Status: complete product draft for review. Product choices reflect the specification discussion; detailed controls, rubric anchors, and acceptance scenarios are included for written review. Implementation has not started.
+Status: product draft updated after technical discussion. The user agreed to LiveKit-only runtime credentials, a 60-second cue / 120-second answer cap, and wording-based MVP feedback. Fluency and Pronunciation scores are deferred. Implementation has not started.
 
 ## Sources and authority
 
@@ -29,18 +29,19 @@ The experience teaches expressions through purpose and reasoning, then creates o
 | P03 | A normal practice exchange contains 2–3 learner turns before coaching. Coaching can address problems found across those turns. | User's latest written-spec review restores 2–3 turns and explicitly requests advice on problems within the exchange. |
 | P04 | Practice follows spoken Q&A: the LLM generates the opening question or prompt for every new practice session, guided by the selected scenario, purpose, situation, roles, and difficulty. The learner answers in their own words, and the tutor responds with an answer-dependent follow-up. Each completed learner answer counts as one learner turn; the tutor's question does not add a turn. | User clarified the Q&A format during visual review and explicitly confirmed LLM-generated opening questions each time. |
 | P05 | Voice leads the experience, including tutor responses and coaching; text supports understanding. Tutor speech should sound natural and fluent, with appropriate tone, intonation, emphasis, and pacing. | Original voice-first direction plus the user's latest request for a native speaking experience with tone and fluency. |
-| P06 | Use LLM judgment to assess the practice exchange across Fluency, Pronunciation, Naturalness, and Workplace tone. Give one integer score from 1–5 per supported dimension and no overall grade. Ground feedback in the learner's speech, provide actionable advice on observed problems across the exchange, select one retry priority, and leave dimensions unscored when evidence is insufficient. | User accepted discussion question 5 and clarified in written review that LLM analysis and scoring should be flexible. |
+| P06 | Use LLM judgment to assess the wording in the practice exchange across Naturalness and Workplace tone. Retain one integer score from 1–5 per supported dimension and no overall grade. Ground feedback in reliable transcripts and context, give actionable advice across the exchange, and select one retry priority. Defer Fluency and Pronunciation scores. | User chose wording-based MVP feedback during technical review to keep the interviewer's setup limited to LiveKit credentials; this supersedes the earlier four-dimension scope. |
 | P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Present scenarios in this order: Hosting a meeting → One-on-one → Casual talk. Include three purposes in each: nine total, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | User expanded coverage to three purposes per scenario during visual review, accepted Close a conversation and Ask for feedback, and requested Casual talk after Meeting and One-on-one. |
 | P08 | Deliver a web app with one portrait phone layout, using the mockup's 390:844 aspect ratio. Desktop browsers show the same portrait app centered in the available space. Provide immediate guest access without an account. | User refined question 9 during specification review: support only the phone ratio, including when running Docker on desktop. Recent sessions remains included. |
 | P09 | End at a natural break once the communication goal has been demonstrated, after at least 2 learner turns and no later than turn 3. Acknowledge the final answer and explicitly switch to coaching on the completed exchange without asking an unanswered roleplay question. | User accepted adaptive completion in question 4, then changed its bounds to match P03 during written-spec review. |
 | P10 | Offer a focused retry of 1–2 learner turns with a small variation, so the learner can apply the main coaching suggestion immediately. | User accepted discussion question 6. |
 | P11 | Follow-ups may advance the realistic scene beyond the selected expression or purpose, while coaching continues to emphasize the selected skill. | User accepted discussion question 7. |
 | P12 | Use hands-free conversation with automatic turn completion and spoken interruption. Provide explicit controls, including an “I'm done” fallback, and tolerate thinking pauses. | User accepted discussion question 8. |
-| P13 | After retry, give targeted spoken feedback and a takeaway with an expression and its reasoning pattern. Keep the original exchange scores; do not automatically regrade four dimensions from the focused retry. Offer another focused retry or finish. | User accepted discussion question 11. |
+| P13 | After retry, give targeted spoken feedback and a takeaway with an expression and its reasoning pattern. Keep the original exchange scores; do not automatically regrade them from the focused retry. Offer another focused retry or finish. | User accepted discussion question 11. |
 | P14 | Temporarily retain transcript, progress, and scores for 24 hours after the last practice activity, without application-saved learner recordings. Add Recent sessions for the same browser, without an account. | User selected temporary recovery in question 12 and requested Recent sessions; accepted questions 13–14. |
 | P15 | Recent sessions includes unfinished and completed sessions. Resume continues unfinished practice; Review opens completed results; Practice again starts a new session for the same purpose with a fresh exchange and assessment. | User accepted discussion question 13. Section 5 clarifies the new-session behavior in response to the user's question about repeated questions. |
 | P16 | Leaving practice saves it paused. Finish completes practice and retains the results. Explicit Delete or expiry clears the session. | User accepted discussion question 14. This replaces the earlier clear-on-exit proposal. |
-| P17 | Build the real voice experience with the LiveKit SDK and LLM-driven conversation and speaking-quality assessment. Select models that can support the required speech delivery and audio-grounded feedback. | User explicitly confirmed LiveKit SDK and an LLM behind the experience during written-spec review. Specific providers remain for technical design. |
+| P17 | Build the real voice experience with the LiveKit SDK and LiveKit Inference for transcription, LLM conversation/wording assessment, and spoken output. The interviewer supplies only LiveKit Cloud credentials; no separate model-provider key is required. | User explicitly selected LiveKit-only API access during technical review. |
+| P18 | Start timing at the first speech; show a gentle cue at 60 seconds and stop capture at 120 seconds. Let the learner submit the captured answer or retry. Ordinary pauses count within the answer; duration does not determine scores or evidence sufficiency. | User agreed to the proposed soft target and capture cap during technical review. |
 
 The assignment's two-hour expectation guides scope; no new hard deadline was agreed in this discussion.
 
@@ -74,18 +75,16 @@ This illustrates responsive conversation, not a fixed dialogue. Follow-ups may a
 
 Spoken coaching follows the short exchange. Feedback considers all completed learner turns and can address problems in any of them, including an earlier answer. Give concrete advice and an example for each meaningful issue raised. Keep the spoken summary concise, with turn-specific detail available in coaching notes and through spoken follow-up questions. The tutor's coaching role must be distinguishable from its roleplay character.
 
-Assess the full practice exchange in four dimensions, each on an integer 1–5 scale:
+Assess wording across the full practice exchange in two dimensions, each on an integer 1–5 scale:
 
 | Dimension | Meaning |
 | --- | --- |
-| Fluency | The flow and phrasing of spoken contributions, allowing normal thinking pauses. |
-| Pronunciation | How understandable the learner's speech is, including sounds, stress, intonation, and phrasing. Having a particular native accent is not the goal. |
 | Naturalness | Whether the wording is idiomatic and suitable for the intended meaning. |
-| Workplace tone | Whether wording and spoken delivery convey warmth, directness, and formality suited to the situation and relationships. |
+| Workplace tone | Whether word choice, directness, and formality suit the workplace situation and relationships. This assesses wording, not vocal delivery. |
 
-There is no overall grade. The LLM judges the exchange in context using the rubric as guidance. Coaching uses examples from the learner's actual contributions and selects one main improvement for the focused retry; that priority does not limit the other useful advice available for the exchange. A dimension without sufficient evidence remains unscored with an explanation. Audio-dependent judgments cannot be inferred solely from a transcript. Section 8 defines rubric anchors and evidence requirements.
+There is no overall grade. The LLM judges the exchange in context using the rubric as guidance. Coaching uses reliable wording from the learner's actual contributions and selects one main improvement for the focused retry; that priority does not limit the other useful advice available for the exchange. A dimension without sufficient evidence remains unscored with an explanation. Label feedback **Based on your words** and explain that pronunciation, fluency, and vocal delivery are not assessed in this version. Do not display deferred dimensions as empty scorecards. Section 8 defines rubric anchors and evidence requirements.
 
-The focused retry lasts 1–2 learner turns and uses a small variation of the same situation. Its purpose is to apply the coaching suggestion, rather than repeat the entire exchange. Afterward, give brief spoken feedback on the targeted change and offer another retry or a takeaway. Keep the original exchange scores available; the focused retry does not automatically receive a fresh four-score assessment.
+The focused retry lasts 1–2 learner turns and uses a small variation of the same situation. Its purpose is to apply the coaching suggestion, rather than repeat the entire exchange. Afterward, give brief spoken feedback on the targeted wording change and offer another retry or a takeaway. Keep the original exchange scores available; the focused retry does not automatically receive a fresh scored assessment.
 
 The mockup's prepared scores and scripted improvements establish no real assessment behavior. Retry feedback must reflect what happened, with no guaranteed score increase.
 
@@ -96,7 +95,7 @@ The mockup's prepared scores and scripted improvements establish no real assessm
 - The LLM generates an opening for each new session. Tutor follow-ups respond to details in the learner's answers rather than merely advancing a fixed question list.
 - Practice allows suitable alternative wording; copying the displayed expression is not a success condition.
 - The tutor delivers coaching aloud, can advise on problems across all completed exchange turns, and provides secondary written support.
-- LLM assessment summarizes the full exchange in four separate 1–5 dimensions, using contextual judgment and actual speech evidence, with no aggregate grade and no invented score for unsupported dimensions.
+- LLM assessment summarizes the full exchange in two separate 1–5 dimensions, Naturalness and Workplace tone, using contextual judgment and reliable wording evidence, with no aggregate grade and no invented score for unsupported dimensions.
 - A focused retry gives the learner 1–2 turns to apply the main suggestion in a slightly varied situation.
 - Explanations suit intermediate learners and use simple English.
 - All nine purposes, three per scenario, share one reusable practice experience, with curated expressions and preset situations.
@@ -139,7 +138,7 @@ Recent sessions is temporary browser-associated history. It does not provide cro
 
 The assignment requires a frontend and backend for a real-time LiveKit voice tutor, Redis-backed conversation state, and startup through Docker Compose using a root `.env` with a complete `.env.example`. The user has confirmed the LiveKit SDK and LLM-driven conversation and assessment as the implementation direction.
 
-The voice model and assessment design must preserve access to learner audio for judgments about delivery. LiveKit supports both direct speech-to-speech models and a speech-to-text → LLM → text-to-speech pipeline. Its [pipeline comparison](https://docs.livekit.io/agents/models/pipelines.md), checked on 2026-09-26, explains that direct audio input preserves vocal cues lost in transcription. A speech-to-speech model is a strong candidate for the requested natural experience; technical design must evaluate it against voice quality, turn control, transcript recovery, and assessment needs before selecting providers. Audio understanding alone does not establish scoring quality: assessment still needs representative speech checks.
+Use LiveKit Cloud with LiveKit Inference so the reviewer needs only LiveKit credentials. The MVP uses speech-to-text → LLM → text-to-speech for conversation, plus a separate LLM request over saved wording for assessment. Natural tutor speech, interruption, thinking-pause tolerance, and exact expression playback remain required. Audio-based learner scoring is deferred; it is not approximated from transcripts, STT confidence, or speaking-duration formulas. A future audio-scoring design must establish an audio-capable evaluator and representative speech validation before claiming those capabilities.
 
 Docker Compose on a desktop serves the same portrait browser interface. The service packaging does not require a desktop-sized application layout.
 
@@ -157,6 +156,7 @@ These controls define the learner-visible behavior independently of the eventual
 - Ask one question at a time. Normal roleplay turns should usually be one or two short sentences, leaving most of the speaking opportunity to the learner.
 - A learner turn is one submitted learner answer to the current tutor question or prompt. The tutor's question and acknowledgment do not advance the 2–3-turn count. Silence, background noise, help requests, and control actions do not advance it either. A genuine brief answer can count even when it supplies insufficient evidence for scoring.
 - Automatically detect completion using speech context and pauses. An ordinary thinking pause must not automatically become a completed response. A visible **I'm done** control submits the current response if the tutor keeps waiting; it does nothing to the turn count when there is no speech to submit.
+- Start answer timing at the first learner speech and include thinking pauses. At 60 seconds, show **Wrap up your answer** without speaking over the learner. At 120 seconds, stop capture and offer **Use this answer** or **Try again**; preserve the candidate until that choice or a normal discard event. A continuation of the same answer shares its remaining allowance, excluding tutor playback between capture intervals. Do not automatically submit, score, or discard a capped answer, and do not penalize the technical cutoff. Short answers remain eligible based on their content.
 - If the learner's meaning is unclear, ask a short clarification within the remaining exchange turn budget instead of inventing it. After turn 3, explain any uncertainty in coaching rather than extending roleplay. Do not manufacture details for assessment from an unreliable transcript.
 - Speaking while the tutor speaks interrupts its audio. The tutor must respond to the new learner contribution without later resuming an obsolete reply.
 - If the tutor starts prematurely and the learner continues the same answer, accept that continuation without counting it as two answers. During coaching, spoken questions about feedback stay in the coaching phase and do not add roleplay or retry turns.
@@ -169,6 +169,7 @@ These controls define the learner-visible behavior independently of the eventual
 | --- | --- |
 | Start practice | Explain the microphone requirement, request access on user action, connect, then speak the setup and first prompt. No microphone use before starting. |
 | I'm done | Submit the current spoken response without waiting for automatic completion. It is a button, not a requirement to speak a command. |
+| Use this answer / Try again after the cap | Submit the captured candidate exactly once, or discard it and answer the same prompt again. Neither reaching the cap nor choosing retry adds a learner turn. |
 | Pause | Stop capture and tutor playback. Preserve completed responses and progress. An unfinished answer is not submitted; tell the learner that it needs to be tried again. No pending reply may start playing while paused. |
 | Resume | Explicitly resume the same session and phase. In roleplay or retry, return to the same prompt after an unfinished answer, or continue once from a submitted answer that was awaiting a reply. Resuming coaching restores coaching without restarting roleplay. |
 | Mute | Turn off microphone capture while allowing tutor audio to continue. Muting does not submit an answer or count as a turn. If it interrupts an unfinished answer, apply the same visible retry behavior as Pause. |
@@ -184,33 +185,33 @@ Ready, connecting, tutor speaking, listening, thinking, paused, coaching, and co
 
 Scores are formative feedback for this exchange. They do not certify a proficiency level or represent progress over time. They are not averages of hidden per-turn grades.
 
-The LLM evaluates meaning and speaking quality holistically. The anchors guide consistent interpretation; they are not a phrase-matching checklist or a formula based on word counts, pause counts, or error totals. The evaluator can weigh the communication purpose, relationships, wording, and audible delivery together. Application validation checks that returned scores, evidence references, and availability states are structurally valid; it does not replace contextual judgment with hard-coded language rules.
+The LLM evaluates the meaning and wording of the exchange holistically. The anchors guide consistent interpretation; they are not a phrase-matching checklist or a formula based on word counts, pause counts, or error totals. The evaluator weighs communication purpose, relationships, wording, and prior context. It cannot hear the learner and must not claim to judge pronunciation, speaking pace, pauses, stress, confidence, or vocal warmth. Application validation checks that returned scores, evidence references, and availability states are structurally valid; it does not replace contextual judgment with hard-coded language rules.
 
 ### Rubric anchors
 
-| Score | Fluency | Pronunciation | Naturalness | Workplace tone |
-| --- | --- | --- | --- | --- |
-| 1 | Repeated breakdowns make the intended message difficult to follow. | Frequent unintelligibility prevents understanding much of the message. | Wording frequently obscures the intended meaning. | Wording repeatedly works against the communication purpose or relationship. |
-| 2 | Frequent restarts or disrupted phrasing require substantial listener effort. | Repeated sound or stress problems require substantial listener effort. | The message is recoverable, but recurring awkward constructions impede it. | Several choices are too abrupt, vague, or mismatched in formality. |
-| 3 | The message is generally easy to follow despite some disrupted phrasing. | The message is generally understandable, with some unclear words or stress. | Most wording is usable; several expressions could be more idiomatic. | Tone is broadly appropriate, with a clear opportunity to adjust warmth or directness. |
-| 4 | Contributions flow comfortably; occasional repairs do not disrupt understanding. | Speech is consistently clear; minor issues do not impede understanding. | Wording is consistently natural, with only minor awkwardness. | Warmth, directness, and formality consistently suit the situation. |
-| 5 | Phrasing and pacing flexibly support the message throughout the sample. | Sounds, stress, intonation, and phrasing make the message readily understandable throughout. | Expressions are idiomatic and flexibly adapted to the learner's meaning. | Wording and delivery are well judged and adapt to the other participant's responses. |
+| Score | Naturalness | Workplace tone |
+| --- | --- | --- |
+| 1 | Wording frequently obscures the intended meaning. | Wording repeatedly works against the communication purpose or relationship. |
+| 2 | The message is recoverable, but recurring awkward constructions impede it. | Several wording choices are too abrupt, vague, or mismatched in formality. |
+| 3 | Most wording is usable; several expressions could be more idiomatic. | Wording is broadly appropriate, with a clear opportunity to adjust warmth or directness. |
+| 4 | Wording is consistently natural, with only minor awkwardness. | Word choice, directness, and formality consistently suit the situation. |
+| 5 | Expressions are idiomatic and flexibly adapted to the learner's meaning. | Wording is well judged and adapts to the other participant's responses. |
 
-Normal thinking pauses are not a defect in themselves. Pronunciation evaluates intelligibility, not conformity to a native accent. Tone depends on the specified roles and situation; warmth is not always more important than directness. A high score never requires the exact displayed phrase.
+Normal thinking pauses are acceptable and are not scored. Workplace tone depends on the specified roles and situation; warmth is not always more important than directness. A high score never requires the exact displayed phrase.
 
 ### Evidence and feedback
 
-- Assess completed learner responses from the practice exchange. Exclude tutor audio, hints, unsubmitted fragments, and the later retry.
-- Fluency and Pronunciation require usable learner audio. Naturalness and Workplace tone require sufficiently reliable wording and context; comments on vocal tone, emphasis, or intonation also require audio. If only wording supports a tone score, explain that limited basis. A transcript alone cannot support all four dimensions.
+- Assess the reliable transcripts of completed learner responses from the practice exchange. Exclude tutor wording, hints, unsubmitted fragments, and the later retry.
+- Naturalness and Workplace tone require sufficiently reliable wording and context. Explain that tone refers to word choice and formality. Do not infer audio-dependent qualities from punctuation, filler counts, transcript length, or recognition confidence.
 - Do not issue a full scorecard from silence, unintelligible input, or only isolated acknowledgments such as “yes” and “okay.” Each dimension can independently be unavailable.
-- Explain unavailable results accurately: **Not enough speech**, **Audio unclear**, or **Assessment unavailable**, as applicable. A service failure is not a low score.
-- For each score, provide a short explanation and evidence linked to an actual learner turn. Naturalness/tone feedback can quote wording; audio feedback should describe an observed feature without inventing a quote or pronunciation error.
-- Coaching reviews all completed turns, normally the 2–3-turn exchange, identifies a useful strength, and gives actionable advice on meaningful problems wherever they occurred. Notes connect each issue to the relevant turn and include improved wording or a delivery suggestion with its reasoning. Similar issues can be grouped. Do not invent a problem for every turn or limit review to the final answer.
-- Spoken coaching summarizes the useful advice concisely and makes one improvement the retry priority. Model an alternative with a short explanation of why it helps; when the issue concerns stress, pacing, or tone, demonstrate that delivery aloud. The learner can ask about other feedback during coaching. Do not read all four numbers aloud by default.
+- Explain unavailable results accurately: **Not enough detail**, **Transcript unclear**, or **Assessment unavailable**, as applicable. A service failure is not a low score. Transcription can be wrong; do not present uncertain recognized wording as an established learner error.
+- For each score, provide a short explanation and evidence linked to an actual learner turn. Quotes must match the submitted transcript; improved alternatives must be clearly labeled as suggestions.
+- Coaching reviews all completed turns, normally the 2–3-turn exchange, identifies a useful strength, and gives actionable advice on meaningful wording problems wherever they occurred. Notes connect each issue to the relevant turn and include improved wording with its reasoning. Similar issues can be grouped. Do not invent a problem for every turn or limit review to the final answer.
+- Spoken coaching summarizes the useful advice concisely and makes one improvement the retry priority. Speak an alternative with a short explanation of why it helps. The learner can ask about other feedback during coaching. Do not read the numeric scores aloud by default or claim the learner's delivery improved.
 - If the selected skill was already demonstrated, acknowledge it and offer a relevant refinement or transfer challenge. Do not manufacture an error to justify a retry.
-- The normal path must support genuine assessment of all four dimensions when there is adequate speech. Permanent “unavailable” placeholders for audio dimensions do not satisfy the release requirement.
+- The normal path supports both wording dimensions when there is adequate evidence. Fluency and Pronunciation are deferred features, not unavailable placeholder scores in the MVP.
 
-The technical specification must define how audio reaches an audio-capable evaluator, how the LLM judges evidence sufficiency per dimension, and how the rubric is checked against representative speech. Code can reject missing or corrupt input and invalid result structures, while the LLM decides whether usable speech supports a meaningful score. No fixed minimum seconds or word count automatically qualifies or disqualifies a sample. Scoring can adapt to the exchange while retaining the agreed dimensions, scale, evidence requirements, and unavailable states.
+The technical specification must define transcript provenance, the separate assessment request, evidence sufficiency per dimension, and checks against representative exchanges. Code can reject missing/corrupt input and invalid result structures, while the LLM decides whether reliable wording supports a meaningful score. No fixed minimum seconds or word count automatically qualifies or disqualifies a sample. Audio-based assessment can be revisited after the MVP without weakening the evidence rules for these two dimensions.
 
 ## 9. Content and completion details
 
@@ -241,7 +242,7 @@ The completion behavior is:
 1. Invite the learner to apply the main suggestion in a slightly varied prompt.
 2. Finish after one response if it demonstrates the target, or use one relevant follow-up and finish after the second response.
 3. Give brief spoken feedback on the targeted change. Acknowledge improvement only when the new response supports it; otherwise offer one concrete adjustment without requiring a passing grade.
-4. Keep the original exchange's four scores labeled as that exchange's assessment. Do not automatically replace them with scores for the focused retry or show invented improvement deltas.
+4. Keep the original exchange's two scores labeled as that exchange's assessment. Do not automatically replace them with scores for the focused retry or show invented improvement deltas.
 5. Offer another focused retry or Finish. Finish completes the session and opens its takeaway. The learner can also skip retry and finish immediately after the original coaching.
 
 The takeaway identifies the practiced purpose, one expression to reuse, and the communication pattern or reasoning behind it. It can be heard aloud and read, and remains available with completed results until session expiry or deletion. It is not an independent saved-expression library. **Back to conversations** returns to scenario selection and preserves the completed session in Recent sessions.
@@ -262,10 +263,10 @@ The takeaway identifies the practiced purpose, one expression to reuse, and the 
 - Temporarily store each guest session's selected purpose, actual practice situation, phase, progress, completed transcript, original assessment, coaching, retry feedback, and takeaway as available. Associate access with the same browser; no account is required.
 - Retain each session for at most 24 hours after its last practice activity. Starting/resuming practice, submitting answers, requesting active help, or finishing can renew this interval. Passive heartbeats, listing Recent sessions, and reviewing completed results do not renew it.
 - **Back to conversations** saves; **Finish** completes; **Delete** removes. Deletion applies to application session data and does not promise deletion from external providers' systems.
-- The app does not persist learner recordings. Audio may be held temporarily for live processing and assessment, then discarded. Avoid copying transcripts or learner audio into application logs. Provider processing and retention must be documented separately in technical design.
+- The app does not persist learner recordings. Audio may be held temporarily for live transcription and submission, then discarded. Wording assessment uses saved transcripts and does not retain exchange audio. Avoid copying transcripts or learner audio into application logs. Provider processing and retention must be documented separately in technical design.
 - Refresh or reconnect restores completed work and the saved phase, but returns an unfinished session to a paused state. No microphone capture resumes without an explicit user action. A completed session remains a read-only review.
 - If Pause, Mute, Hint, replay, navigation, or connection loss cuts off capture before an answer is submitted, that fragment is not counted or scored. Explain that the learner needs to answer the current prompt again. Preserve earlier completed responses. This does not apply to the learner interrupting tutor playback: accept and process that learner contribution normally.
-- If audio evidence is lost during recovery, do not reconstruct audio scores from text. Preserve scores already obtained; explain any unavailable pending assessment and offer another speaking attempt.
+- Pending wording assessment can be retried from saved transcripts after recovery. Loss of an unsubmitted answer still requires another attempt; it does not invalidate assessment of earlier saved answers.
 - Persist completed results as they become available. Pending work must not update a deleted or expired session or start playback after the learner has left it.
 - Remove expired entries from Recent sessions. A stale link to one explains that it expired and offers a fresh start; it must not appear to have recovered deleted history.
 
@@ -291,10 +292,10 @@ These are the observable checks the implementation and technical plan should sup
 | A03 | Normal Q&A conversation | Each new session uses an LLM-generated opening question or prompt appropriate to its purpose, situation, roles, and difficulty. The tutor gives an audible setup and opening, then produces follow-up questions grounded in the actual learner answers. Two learner answers count as two turns regardless of the number of tutor messages. Prepared sample playback cannot substitute for this check. |
 | A04 | Goal achieved after 2 turns | The tutor can finish after the second learner answer at a natural break, acknowledge it, and switch explicitly to coaching without leaving a new question unanswered. |
 | A05 | Goal not yet demonstrated after turn 3 | The tutor ends roleplay after the third learner turn and gives constructive coaching instead of adding a fourth roleplay question. |
-| A06 | Learner pauses mid-answer | An ordinary thinking pause does not trigger an intrusive substantive reply. If completion is not detected when the learner is done, **I'm done** submits exactly once. The technical test plan must define representative audio samples. |
+| A06 | Learner pauses or reaches an answer limit | An ordinary thinking pause does not trigger an intrusive substantive reply. **I'm done** submits exactly once. A gentle cue appears at 60 seconds; capture stops at 120 seconds and waits for Use this answer / Try again without losing accepted work, auto-counting, or penalizing duration. The technical test plan defines representative audio and continuation cases. |
 | A07 | Learner interrupts tutor speech | Playback stops and the exchange responds to the learner's new contribution; an obsolete response never resumes later. |
 | A08 | Learner uses Pause, Mute, Hint, or replay | Capture/playback and turn counting follow the control table. No helper audio or incomplete answer is mistaken for an assessed learner turn. |
-| A09 | Adequate clear speech | Four separate 1–5 scores reflect LLM judgment of the exchange with actual supporting evidence and explanations. Short, informative answers remain eligible based on that evidence. Spoken coaching identifies one retry priority; no aggregate grade appears. |
+| A09 | Adequate reliable wording | Two separate 1–5 scores, Naturalness and Workplace tone, reflect LLM judgment with transcript-linked evidence and explanations. Short, informative answers remain eligible. Feedback is labeled as based on words; no audio scores or aggregate grade appear. Spoken coaching identifies one retry priority. |
 | A10 | Insufficient or unclear speech | Affected dimensions remain unscored with the right explanation. Silence and isolated acknowledgments never produce a fabricated full scorecard. |
 | A11 | Focused retry | A slight variation elicits 1–2 learner turns. Feedback accurately addresses the targeted suggestion. The original exchange's scores stay labeled and unchanged; another retry or Finish is available. |
 | A12 | Learner finishes early | Capture/playback stop. Feedback uses only completed work; no-completed-answer sessions do not claim achievement or invent scores. |
@@ -316,4 +317,4 @@ The release excludes native apps, separate desktop/tablet/landscape layouts, acc
 
 The provisional Good Company identity and Alex tutor name can carry over from the mockup for this release. They are reversible presentation defaults, not brand-development work. Preserve the mockup's voice emphasis, restrained palette, typography, and optional text without treating its simulated controls as implementation logic.
 
-Once this product specification is reviewed, a separate technical specification should select the implementation and provider stack, define session state and audio assessment, establish measurable turn-taking and latency checks, and map these acceptance scenarios to verification. Product implementation has not started.
+The [technical specification](../technical/workplace-english-technical-spec.md) selects the LiveKit Inference stack, defines session state and wording assessment, establishes measurable turn-taking and latency checks, and maps these acceptance scenarios to verification. Audio-based scoring is deferred. Product implementation has not started.
