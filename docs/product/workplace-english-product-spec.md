@@ -31,7 +31,7 @@ The experience teaches expressions through purpose and reasoning, then creates o
 | P05 | Voice leads the experience, including tutor responses and coaching; text supports understanding. | Explicit user direction preserved in the mockup handoff. |
 | P06 | Assess the practice exchange across Fluency, Pronunciation, Naturalness, and Workplace tone. Give one integer score from 1–5 per supported dimension and no overall grade. Ground feedback in the learner's speech, identify one main improvement, and leave dimensions unscored when evidence is insufficient. | User accepted discussion question 5, refining the earlier request for multidimensional feedback. |
 | P07 | Organize learning as scenario → communication purpose → expressions and reasoning → speaking practice. Include all seven existing purposes across hosting a meeting, casual talk, and one-on-one, using curated content and preset situations. No custom-scenario builder or personalization setup is required. | Established scenario direction; user accepted discussion question 10 for purpose coverage. |
-| P08 | Deliver a responsive mobile web app that also works in a desktop browser. Provide immediate guest access without an account. | User accepted discussion question 9. The later request for Recent sessions supersedes the earlier proposal to omit a history screen. |
+| P08 | Deliver a web app with one portrait phone layout, using the mockup's 390:844 aspect ratio. Desktop browsers show the same portrait app centered in the available space. Provide immediate guest access without an account. | User refined question 9 during specification review: support only the phone ratio, including when running Docker on desktop. Recent sessions remains included. |
 | P09 | End at a natural break once the communication goal has been demonstrated, after at least 3 learner turns and no later than turn 5. Acknowledge the final answer and explicitly switch to coaching without asking an unanswered roleplay question. | User accepted discussion question 4. |
 | P10 | Offer a focused retry of 1–2 learner turns with a small variation, so the learner can apply the main coaching suggestion immediately. | User accepted discussion question 6. |
 | P11 | Follow-ups may advance the realistic scene beyond the selected expression or purpose, while coaching continues to emphasize the selected skill. | User accepted discussion question 7. |
@@ -106,6 +106,15 @@ Section 11 gives concrete acceptance scenarios.
 
 ## 5. Navigation and Recent sessions
 
+### Portrait presentation
+
+- Use one portrait app surface for every screen, including Conversations, Recent sessions, practice, feedback, and sheets. Its reference and maximum size is **390 × 844 CSS pixels**, with a **390:844 width-to-height ratio**. Reduce its bounds only when the available viewport is smaller.
+- On desktop, center that surface against a simple surrounding background. Extra browser width does not expand the app or introduce desktop columns, side panels, or a separate navigation layout.
+- Fit the portrait surface within smaller available viewports while retaining its aspect ratio. Keep text readable and controls at least 44×44 CSS pixels; reflow and scroll content inside the surface instead of uniformly shrinking the whole interface. A phone viewport with a different ratio may have space around the app.
+- Support one portrait layout. A landscape or tablet-specific interface is outside release scope; a wide desktop browser still hosts the same portrait surface.
+
+### Navigation
+
 Provide two primary destinations: **Conversations** and **Recent sessions**. Conversation selection leads to expression exploration and practice. Recent sessions is an intentional addition to the original six-screen mockup.
 
 Each recent entry shows scenario, purpose, last practice time, and whether it is unfinished or completed. Make the 24-hour retention window clear. An empty page explains that starting practice creates an entry.
@@ -122,6 +131,8 @@ Recent sessions is temporary browser-associated history. It does not provide cro
 ## 6. Delivery constraints carried into technical design
 
 The assignment requires a frontend and backend for a real-time LiveKit voice tutor, Redis-backed conversation state, and startup through Docker Compose using a root `.env` with a complete `.env.example`.
+
+Docker Compose on a desktop serves the same portrait browser interface. The service packaging does not require a desktop-sized application layout.
 
 Required submission materials include the exact assignment in `PROMPT.md`, architecture and tradeoffs in `README.md`, an accurate `workflow.md`, a demonstration video, and a zip of the repository including `.git`. The README must discuss how the design would change for 10,000 concurrent sessions.
 
@@ -258,7 +269,7 @@ These are the observable checks the implementation and technical plan should sup
 
 | ID | Scenario | Acceptance condition |
 | --- | --- | --- |
-| A01 | Guest opens the app | Scenario selection is immediately usable without sign-up. Portrait phone and desktop layouts expose readable text and reachable controls. |
+| A01 | Guest opens the app on phone or desktop | Scenario selection is immediately usable without sign-up. Both hosts display the same 390:844 portrait app surface with readable text and reachable controls; a wide browser centers it instead of producing a desktop layout. |
 | A02 | Learner selects any of the seven purposes | Its expression, alternative, explanation, audible playback, and matching practice entry are available. |
 | A03 | Normal conversation | The tutor gives an audible setup and opening, then produces follow-ups grounded in the actual learner answers. Prepared sample playback cannot substitute for this check. |
 | A04 | Goal achieved after 3 or 4 turns | The tutor can finish at a natural break, acknowledge the last answer, and switch explicitly to coaching without leaving a new question unanswered. |
@@ -278,11 +289,11 @@ These are the observable checks the implementation and technical plan should sup
 | A18 | Learner reviews completed practice | Review shows the completed transcript, original scores, feedback, and takeaway without microphone capture. Practice again creates a distinct session without altering those results. |
 | A19 | Learner switches sessions | The previous unfinished voice session is paused and saved. Only the newly resumed session can capture or play live conversation audio. |
 
-Visual acceptance includes the existing 390×844 reference and a shorter 375×667 viewport, usable touch targets of at least 44×44 CSS pixels, visible keyboard focus, and transcript access. Browser support, secure microphone access for physical phones, latency targets, and failure timeouts must be made concrete in technical design and the verification plan.
+Visual acceptance uses the 390×844 app reference. In a shorter 375×667 browser viewport and desktop browser viewports, the app retains the same 390:844 aspect ratio, fits within the available area, and keeps content scrollable inside it. There is no alternate 375×667 app ratio or wide desktop layout. Verify readable text, touch targets of at least 44×44 CSS pixels, visible keyboard focus, transcript access, and reachable voice controls. Browser support, secure microphone access for physical phones, latency targets, and failure timeouts must be made concrete in technical design and the verification plan.
 
 ## 12. Deferred scope and next artifact
 
-The release excludes native apps, accounts, cross-device or long-term history, saved-expression libraries, streaks, leaderboards, aggregate grades, placement tests, bilingual instruction, an open-ended conversation mode, curriculum generation, and a custom-scenario builder. Temporary Recent sessions is included explicitly.
+The release excludes native apps, separate desktop/tablet/landscape layouts, accounts, cross-device or long-term history, saved-expression libraries, streaks, leaderboards, aggregate grades, placement tests, bilingual instruction, an open-ended conversation mode, curriculum generation, and a custom-scenario builder. Temporary Recent sessions is included explicitly.
 
 The provisional Good Company identity and Alex tutor name can carry over from the mockup for this release. They are reversible presentation defaults, not brand-development work. Preserve the mockup's voice emphasis, restrained palette, typography, and optional text without treating its simulated controls as implementation logic.
 

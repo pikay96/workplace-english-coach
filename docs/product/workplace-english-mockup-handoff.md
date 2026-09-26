@@ -4,7 +4,7 @@ Date: 2026-09-26
 
 Status: revision 02 of the clickable mockup is complete for discussion. Product and technical specifications are the next step; the production application has not been implemented.
 
-**Product specification:** The [product specification for review](workplace-english-product-spec.md) records the subsequent product decisions: intermediate learners, mobile web with guest access, all seven purposes, adaptive 3–5-turn exchanges, four exchange-level scores, focused 1–2-turn retries, and temporary Recent sessions with Resume/Review. Its interaction and lifecycle requirements supersede conflicting mockup behavior. Technical design and implementation remain separate next steps.
+**Product specification:** The [product specification for review](workplace-english-product-spec.md) records the subsequent product decisions: intermediate learners, a web app using only the 390:844 portrait phone ratio (also centered in desktop browsers), guest access, all seven purposes, adaptive 3–5-turn exchanges, four exchange-level scores, focused 1–2-turn retries, and temporary Recent sessions with Resume/Review. Its presentation, interaction, and lifecycle requirements supersede conflicting mockup behavior. Technical design and implementation remain separate next steps.
 
 Read this document first in the next session, together with the [original assignment](../requirements/general-take-home-project.md). The [brainstorm](workplace-english-brainstorm.md) preserves the earlier product reasoning; the [mockup direction](../design/workplace-english/mockup-direction.md) records detailed visual and interaction choices.
 
