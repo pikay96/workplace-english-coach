@@ -1,0 +1,78 @@
+name: workplace-english
+x-backend-environment: &backend-environment
+  APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  GUEST_COOKIE_SECRET: ${GUEST_COOKIE_SECRET:?Set GUEST_COOKIE_SECRET in .env}
+  LIVEKIT_URL: ${LIVEKIT_URL:?Set LIVEKIT_URL in .env}
+  LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?Set LIVEKIT_API_KEY in .env}
+  LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?Set LIVEKIT_API_SECRET in .env}
+  LIVEKIT_AGENT_NAME: ${LIVEKIT_AGENT_NAME:-workplace-english-tutor}
+  CONVERSATION_MODEL: ${CONVERSATION_MODEL:-google/gemini-3.5-flash}
+  TRANSCRIPTION_MODEL: ${TRANSCRIPTION_MODEL:-deepgram/nova-3}
+  TRANSCRIPTION_LANGUAGE: ${TRANSCRIPTION_LANGUAGE:-en}
+  ASSESSMENT_MODEL: ${ASSESSMENT_MODEL:-google/gemini-3.5-flash}
+  TTS_MODEL: ${TTS_MODEL:-cartesia/sonic-3}
+  TTS_VOICE: ${TTS_VOICE:-30894953-bcce-41fe-892c-15ce19c843ff}
+  TTS_SPEED: ${TTS_SPEED:-0.8}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-86400}
+  VOICE_LEASE_SECONDS: ${VOICE_LEASE_SECONDS:-15}
+  MAX_ACTIVE_SESSIONS: ${MAX_ACTIVE_SESSIONS:-4}
+  ASSESSMENT_TIMEOUT_SECONDS: ${ASSESSMENT_TIMEOUT_SECONDS:-30}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  HF_HUB_OFFLINE: "1"
+  HF_HUB_DISABLE_TELEMETRY: "1"
+  DO_NOT_TRACK: "1"
+  OTEL_SDK_DISABLED: "true"
+services:
+  redis:
+    image: redis:7.4.9-alpine
+    command: [redis-server, --save, "", --appendonly, "no", --maxmemory, 128mb, --maxmemory-policy, noeviction]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+  api:
+    build: {context: ., dockerfile: backend/Dockerfile}
+    image: workplace-english-backend:m2
+    command: [python, -m, uvicorn, app.api.main:app, --host, 0.0.0.0, --port, "8000", --no-access-log, --log-level, critical]
+    environment: *backend-environment
+    depends_on:
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready',timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    stop_grace_period: 30s
+    security_opt: [no-new-privileges:true]
+    ulimits: {core: 0}
+  agent:
+    image: workplace-english-backend:m2
+    command: [python, -m, app.voice.agent]
+    environment: *backend-environment
+    depends_on:
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8081/',timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    stop_grace_period: 30s
+    security_opt: [no-new-privileges:true]
+    ulimits: {core: 0}
+  web:
+    build: {context: ., dockerfile: frontend/Dockerfile}
+    ports: ["${APP_PORT:-8080}:8080"]
+    depends_on: [api]
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/health/web]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    security_opt: [no-new-privileges:true]

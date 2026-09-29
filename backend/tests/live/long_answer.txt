@@ -1,0 +1,19 @@
+Good morning, everyone. Thank you for joining our planning meeting and for making the time today. I'm Sam, and I'll be hosting. Our purpose is to agree on the work for next month, identify any blockers, and choose owners for the next steps. Before we begin, please feel free to ask questions as we go.
+
+First, the design team has finished the updated screens. We need to review them together and check that the wording is clear. Alex, please share your thoughts when we reach that part of the agenda.
+
+The engineering team has prepared a small prototype. It shows the main flow and gives us something concrete to discuss. We will need another week to check the details and collect feedback from everyone.
+
+Our customer support colleagues have sent useful examples of questions they receive. We should look at those examples carefully, because they can help us decide which improvements will make the biggest difference for customers.
+
+There is also a scheduling question for the research team. Some people are away next Tuesday, so we may need to move the review to Thursday. Please let me know if that creates a problem.
+
+For the launch plan, I suggest that we start with a smaller group of users. That would give us time to notice problems and make adjustments before we invite the rest of our customers.
+
+We should also agree on how to share progress. A short written update at the end of each week would help everyone understand what is ready, what is delayed, and where support is needed.
+
+The budget is still being reviewed by our finance colleagues. We can discuss the options today, but we should wait for their confirmation before we make any commitments about additional tools or outside support.
+
+Finally, I would like each person to leave with one clear next step. We will write down the owner and the expected date, then send a short summary so that everyone has the same information.
+
+Thanks again for bringing your ideas and experience to this discussion. We have different perspectives, and that is useful. Let us begin with a quick introduction from each person before we review the design work.

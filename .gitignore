@@ -1,0 +1,29 @@
+.env
+.env.*
+!.env.example
+.venv/
+.venv-m2/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+playwright-report/
+.cache/
+submission/
+*.log
+.DS_Store
+
+# Local agent tooling and mockup assets; written workflow documents are submitted.
+/.agents/
+/.impeccable/
+/skills-lock.json
+/docs/design/
+
+# Recording tools stay local; the finished walkthrough and its notes are submitted.
+/demo/*.py
+/frontend/tests/demo/
+/frontend/playwright.demo.config.ts

@@ -1,0 +1,211 @@
+{
+  "version": "2026-09-27.1",
+  "rubric": {
+    "naturalness": [
+      "Wording frequently obscures the intended meaning.",
+      "The message is recoverable, but recurring awkward constructions impede it.",
+      "Most wording is usable; several expressions could be more idiomatic.",
+      "Wording is consistently natural, with only minor awkwardness.",
+      "Expressions are idiomatic and flexibly adapted to the learner's meaning."
+    ],
+    "workplace_tone": [
+      "Wording repeatedly works against the communication purpose or relationship.",
+      "Several wording choices are too abrupt, vague, or mismatched in formality.",
+      "Wording is broadly appropriate, with a clear opportunity to adjust warmth or directness.",
+      "Word choice, directness, and formality consistently suit the situation.",
+      "Wording is well judged and adapts to the other participant's responses."
+    ]
+  },
+  "purposes": [
+    {
+      "purpose_id": "welcome-everyone",
+      "scenario_id": "hosting-a-meeting",
+      "order": 0,
+      "title": "Welcome everyone",
+      "integrated": true,
+      "expression": "Good to see everyone. Thanks for making the time today.",
+      "alternative": "Hi everyone, glad you could make it.",
+      "explanation": "Acknowledge the people and appreciate their time before getting down to work.",
+      "example": "Good to see everyone. Thanks for making the time today. Let's look at the project timeline.",
+      "hint_starter": "Good to see everyone. Thanks for…",
+      "preset_situation": "You are opening a weekly team meeting with colleagues about a shared project.",
+      "learner_role": "Meeting host and peer colleague",
+      "tutor_role": "Alex, a teammate attending the meeting",
+      "communication_goal": "Welcome the group appropriately, acknowledge their time, and introduce a clear purpose; adapt naturally to a colleague's response.",
+      "allowed_variations": [
+        "Project timeline",
+        "A weekly progress discussion",
+        "Planning next week's work"
+      ],
+      "opening_direction": "Alex is an attendee. Say the group is ready, then ask the learner, the host, a direct question inviting them to open the meeting, such as 'Could you get us started?' Alex must not welcome the group himself."
+    },
+    {
+      "purpose_id": "set-the-agenda",
+      "scenario_id": "hosting-a-meeting",
+      "order": 1,
+      "title": "Set the agenda",
+      "expression": "The goal today is to agree on our next steps.",
+      "alternative": "Let's work out what happens next.",
+      "explanation": "Name the intended outcome so colleagues know what the discussion needs to achieve.",
+      "example": "The goal today is to agree on our next steps for the launch.",
+      "hint_starter": "The goal today is…",
+      "preset_situation": "Explain the goal and intended outcome of a project discussion.",
+      "learner_role": "Meeting host",
+      "tutor_role": "Alex, a project teammate",
+      "communication_goal": "Introduce the topic and a specific outcome, then invite a contribution.",
+      "allowed_variations": [
+        "Launch planning",
+        "Project timeline"
+      ],
+      "integrated": true,
+      "opening_direction": "Alex is an attendee. Ask the learner, the host, what the meeting should achieve today. The learner answers by setting the agenda and intended outcome; Alex must not set it himself."
+    },
+    {
+      "purpose_id": "wrap-up",
+      "scenario_id": "hosting-a-meeting",
+      "order": 2,
+      "title": "Wrap up",
+      "expression": "Before we wrap up, let's confirm who's doing what.",
+      "alternative": "Let's quickly check our next steps.",
+      "explanation": "Signal the end of the discussion and make responsibilities clear.",
+      "example": "Before we wrap up, let's confirm who's doing what. I'll send the notes today.",
+      "hint_starter": "Before we wrap up…",
+      "preset_situation": "Close a team discussion and confirm next steps.",
+      "learner_role": "Meeting host",
+      "tutor_role": "Alex, a teammate",
+      "communication_goal": "Confirm decisions, owners, and next steps before thanking the group.",
+      "allowed_variations": [
+        "Project review",
+        "Weekly planning"
+      ],
+      "integrated": true,
+      "opening_direction": "The discussion is ending. Alex asks the learner, the host, a direct question about the agreed next steps. The learner answers by summarizing decisions and assigning responsibilities. Do not summarize or close on behalf of the learner."
+    },
+    {
+      "purpose_id": "share-progress",
+      "scenario_id": "one-on-one",
+      "order": 3,
+      "title": "Share progress",
+      "expression": "I've made some progress on the project timeline.",
+      "alternative": "The timeline is coming together.",
+      "explanation": "Name the work and a concrete change to make your update easy to follow.",
+      "example": "I've made some progress on the project timeline. The first draft is ready to review.",
+      "hint_starter": "I've made some progress on…",
+      "preset_situation": "Give a concise project update in a weekly check-in.",
+      "learner_role": "Project contributor",
+      "tutor_role": "Alex, your manager",
+      "communication_goal": "Explain what changed, what remains, and the next step.",
+      "allowed_variations": [
+        "Timeline draft",
+        "Research summary"
+      ],
+      "integrated": true,
+      "opening_direction": "Alex is the manager. Ask a direct question about progress on the learner's work within an allowed variation, then let the learner answer."
+    },
+    {
+      "purpose_id": "ask-for-support",
+      "scenario_id": "one-on-one",
+      "order": 4,
+      "title": "Ask for support",
+      "expression": "I could use your help with prioritizing the next steps.",
+      "alternative": "Could we work out the priorities together?",
+      "explanation": "A specific request helps your colleague understand what support would be useful.",
+      "example": "I could use your help with prioritizing the next steps. Two deadlines overlap.",
+      "hint_starter": "I could use your help with…",
+      "preset_situation": "Explain a blocker and make a specific request for help.",
+      "learner_role": "Project contributor",
+      "tutor_role": "Alex, your manager",
+      "communication_goal": "Explain a blocker, request specific help, and agree on a next step.",
+      "allowed_variations": [
+        "Conflicting priorities",
+        "Missing project information"
+      ],
+      "integrated": true,
+      "opening_direction": "The learner needs support on the learner's work. Alex asks a direct question about what help they need, then waits for their answer. Alex must not request help from the learner."
+    },
+    {
+      "purpose_id": "ask-for-feedback",
+      "scenario_id": "one-on-one",
+      "order": 5,
+      "title": "Ask for feedback",
+      "expression": "I'd appreciate your feedback on how I structured the update.",
+      "alternative": "What could I make clearer next time?",
+      "explanation": "Identify a specific part of your work so the other person can give useful feedback.",
+      "example": "I'd appreciate your feedback on how I structured the update. Was the next step clear?",
+      "hint_starter": "I'd appreciate your feedback on…",
+      "preset_situation": "Ask for specific feedback on a recent piece of work.",
+      "learner_role": "Project contributor",
+      "tutor_role": "Alex, a colleague who reviewed your work",
+      "communication_goal": "Invite specific feedback and clarify how to act on it.",
+      "allowed_variations": [
+        "A project update",
+        "A short presentation"
+      ],
+      "integrated": true,
+      "opening_direction": "Alex has reviewed the learner's work. Ask a direct question about which part they would like feedback on. The learner answers by requesting specific feedback. Do not ask them to evaluate Alex's work."
+    },
+    {
+      "purpose_id": "start-a-conversation",
+      "scenario_id": "casual-talk",
+      "order": 6,
+      "title": "Start a conversation",
+      "expression": "How's your morning going?",
+      "alternative": "How has your week been so far?",
+      "explanation": "An open, everyday question gives a colleague room to choose what to share.",
+      "example": "Hi Alex, good to see you. How's your morning going?",
+      "hint_starter": "Hi Alex. How's your…",
+      "preset_situation": "Begin a friendly conversation before work starts.",
+      "learner_role": "Colleague",
+      "tutor_role": "Alex, a colleague",
+      "communication_goal": "Begin a friendly exchange by responding to the colleague and asking a question back.",
+      "allowed_variations": [
+        "At the coffee area",
+        "Before a meeting"
+      ],
+      "integrated": true,
+      "opening_direction": "Alex meets the learner at the coffee area or before a meeting. Alex asks first with a simple everyday question, such as how their morning is going. The learner answers and can ask a friendly question back. Do not wait for the learner to speak first."
+    },
+    {
+      "purpose_id": "follow-up",
+      "scenario_id": "casual-talk",
+      "order": 7,
+      "title": "Follow up",
+      "expression": "What was the most interesting part?",
+      "alternative": "Tell me more about that.",
+      "explanation": "Follow something your colleague said and invite a little more detail.",
+      "example": "I'm glad the presentation went well. What was the most interesting part?",
+      "hint_starter": "That sounds interesting. What…",
+      "preset_situation": "Ask about a presentation your colleague mentioned earlier.",
+      "learner_role": "Colleague",
+      "tutor_role": "Alex, who just gave a presentation",
+      "communication_goal": "Recall the earlier event and ask a relevant follow-up.",
+      "allowed_variations": [
+        "An internal presentation",
+        "A project demonstration"
+      ],
+      "integrated": true,
+      "opening_direction": "Alex briefly mentions the presentation or demonstration he just gave, then asks what the learner would like to know about it. The learner answers by asking a relevant follow-up. Do not ask that follow-up on their behalf."
+    },
+    {
+      "purpose_id": "close-a-conversation",
+      "scenario_id": "casual-talk",
+      "order": 8,
+      "title": "Close a conversation",
+      "expression": "It was good catching up. I'd better get back to work.",
+      "alternative": "I'll let you get on. Let's catch up again soon.",
+      "explanation": "Acknowledge the chat and give a simple reason to leave without sounding abrupt.",
+      "example": "It was good catching up. I'd better get back to work. See you at lunch.",
+      "hint_starter": "It was good…",
+      "preset_situation": "End a friendly chat when it is time to return to work.",
+      "learner_role": "Colleague",
+      "tutor_role": "Alex, a colleague",
+      "communication_goal": "Bring the chat to a friendly close and respond appropriately to the farewell.",
+      "allowed_variations": [
+        "Before your next meeting",
+        "After a coffee break"
+      ],
+      "integrated": true,
+      "opening_direction": "After a pleasant chat, Alex asks a direct question about whether the learner needs to get back to work or their next meeting. The learner answers by closing politely. Do not say the learner's farewell for them."
+    }
+  ]
+}

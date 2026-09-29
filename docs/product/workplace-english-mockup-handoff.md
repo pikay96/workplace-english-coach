@@ -6,7 +6,7 @@ Status: revision 02 of the clickable mockup is complete for discussion. Product 
 
 **Product specification:** The [product specification for review](workplace-english-product-spec.md) records the subsequent product decisions: intermediate learners, a web app using only the 390:844 portrait phone ratio (also centered in desktop browsers), guest access, all seven purposes, adaptive 3–5-turn exchanges, four exchange-level scores, focused 1–2-turn retries, and temporary Recent sessions with Resume/Review. Its presentation, interaction, and lifecycle requirements supersede conflicting mockup behavior. Technical design and implementation remain separate next steps.
 
-Read this document first in the next session, together with the [original assignment](../requirements/general-take-home-project.md). The [brainstorm](workplace-english-brainstorm.md) preserves the earlier product reasoning; the [mockup direction](../design/workplace-english/mockup-direction.md) records detailed visual and interaction choices.
+This document records the design-stage handoff into the product and technical specifications. Read it alongside the [original assignment](../requirements/general-take-home-project.md) and [brainstorm](workplace-english-brainstorm.md) for the earlier product reasoning. References to a current mockup, unbuilt features, and next-session decisions describe that stage of the work. The prototype and its assets are not included in the submission.
 
 ## 1. Product intent and decisions
 
@@ -14,16 +14,16 @@ Help non-native English speakers find suitable workplace expressions more quickl
 
 The organizing model is **scenario → communication purpose → expressions and reasoning → speaking practice**. Teach why an expression works, then help the learner recall and adapt it. Normal thinking pauses are welcome.
 
-| Area | Established direction | Still a proposal or open decision |
-| --- | --- | --- |
-| Subject | Workplace English | Exact proficiency level, first language, region, and career stage |
-| Scenarios | Hosting a meeting, casual talk, one-on-one | Final curriculum size and content authoring approach |
-| Audience and form | Primarily phone users; portrait, touch-friendly experience | Mobile web versus native app |
-| Teaching | Expressions paired with communicative purpose and reasoning, followed by practice | Exercise length and progression |
-| Voice | The user explicitly said voice is always primary; the tutor must respond and coach aloud | Production voice, speech stack, and detailed turn-taking behavior |
-| Text | Secondary support for expressing and understanding meaning | Translation/language support and caption preferences |
-| Assessment | The user explicitly requested several scoring dimensions after the learner speaks | Exact dimensions, scale, rubric, evidence thresholds, and timing within longer conversations |
-| Deliverable from this session | User selected a clickable phone mockup with precise typography and PNG previews | The mockup is a design reference, not a selected application architecture |
+| Area                          | Established direction                                                                    | Still a proposal or open decision                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Subject                       | Workplace English                                                                        | Exact proficiency level, first language, region, and career stage                            |
+| Scenarios                     | Hosting a meeting, casual talk, one-on-one                                               | Final curriculum size and content authoring approach                                         |
+| Audience and form             | Primarily phone users; portrait, touch-friendly experience                               | Mobile web versus native app                                                                 |
+| Teaching                      | Expressions paired with communicative purpose and reasoning, followed by practice        | Exercise length and progression                                                              |
+| Voice                         | The user explicitly said voice is always primary; the tutor must respond and coach aloud | Production voice, speech stack, and detailed turn-taking behavior                            |
+| Text                          | Secondary support for expressing and understanding meaning                               | Translation/language support and caption preferences                                         |
+| Assessment                    | The user explicitly requested several scoring dimensions after the learner speaks        | Exact dimensions, scale, rubric, evidence thresholds, and timing within longer conversations |
+| Deliverable from this session | User selected a clickable phone mockup with precise typography and PNG previews          | The mockup is a design reference, not a selected application architecture                    |
 
 The user preferred moving into the overall experience rather than continuing to investigate individual workplace situations. The next session should resolve material product and technical decisions without reopening this established direction unnecessarily.
 
@@ -47,14 +47,14 @@ The design drew on the brainstorming, mobile mockup, minimalist UI, and high-end
 
 The reference journey is **Hosting a meeting → welcome everyone → practice → coaching and scores → retry → takeaway**.
 
-| Screen | Experience |
-| --- | --- |
-| Choose a conversation | “What's coming up?” offers hosting a meeting, casual talk, and one-on-one. |
-| Explore an expression | Select a purpose, see a useful phrase, learn why it works, hear it, and start practice. |
-| Practice | Alex sets the situation aloud and plays the other person. Active-speaker status and audio controls lead; **Show words** and **View transcript** provide optional text. |
-| Hint | A bottom sheet stops roleplay playback and pauses the simulated microphone. **Hear a hint** offers a spoken starter, supported by short phrases. |
-| Coaching and retry | Alex becomes “your coach.” Spoken feedback leads, followed by four scores and one focused next step. **Read coaching notes** is collapsed initially; **Try that again** starts another attempt. |
-| Takeaway | Hear and see an expression to reuse and the pattern behind it, then return to conversations. Persistent saving is not implemented or decided. |
+| Screen                | Experience                                                                                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Choose a conversation | “What's coming up?” offers hosting a meeting, casual talk, and one-on-one.                                                                                                                      |
+| Explore an expression | Select a purpose, see a useful phrase, learn why it works, hear it, and start practice.                                                                                                         |
+| Practice              | Alex sets the situation aloud and plays the other person. Active-speaker status and audio controls lead; **Show words** and **View transcript** provide optional text.                          |
+| Hint                  | A bottom sheet stops roleplay playback and pauses the simulated microphone. **Hear a hint** offers a spoken starter, supported by short phrases.                                                |
+| Coaching and retry    | Alex becomes “your coach.” Spoken feedback leads, followed by four scores and one focused next step. **Read coaching notes** is collapsed initially; **Try that again** starts another attempt. |
+| Takeaway              | Hear and see an expression to reuse and the pattern behind it, then return to conversations. Persistent saving is not implemented or decided.                                                   |
 
 There are seven purpose examples across the three scenarios: welcome, set the agenda, wrap up; start a chat, follow up; share progress, ask for support. These establish reusable content structure rather than a large curriculum.
 
@@ -81,12 +81,12 @@ Current controls include **Start talking with Alex**, **Speak now**, **Pause/Res
 
 The short demonstration follows **prepared learner answer → in-character tutor reply → spoken coaching and scores**. Longer roleplay remains an open product decision. A proposed approach is to assess completed responses quietly and deliver spoken coaching at natural breaks or when requested, avoiding interruption of an unfinished learner turn.
 
-| Proposed dimension | What it describes | Initial example score |
-| --- | --- | --- |
-| Fluency | Flow, phrasing, and comfortable pacing | 3/5 |
-| Pronunciation | Intelligibility, sounds, and stress | 4/5 |
-| Naturalness | Idiomatic, everyday wording | 3/5 |
-| Workplace tone | Warmth and directness suited to the situation | 3/5 |
+| Proposed dimension | What it describes                             | Initial example score |
+| ------------------ | --------------------------------------------- | --------------------- |
+| Fluency            | Flow, phrasing, and comfortable pacing        | 3/5                   |
+| Pronunciation      | Intelligibility, sounds, and stress           | 4/5                   |
+| Naturalness        | Idiomatic, everyday wording                   | 3/5                   |
+| Workplace tone     | Warmth and directness suited to the situation | 3/5                   |
 
 “Naturalness” interprets the user's suggestion of “native.” Pronunciation concerns understandability; accent identity is not a scoring criterion. Each score opens an explanation with example scale anchors. There is no headline aggregate grade. Spoken coaching gives one useful change rather than reading every number aloud.
 
@@ -104,23 +104,11 @@ Recorded verification covered actual playback, pause/resume, interruption, hint 
 
 The reference phone viewport is 390×844 CSS pixels. Six primary screens and two recovery states have separate 924×1832 PNG exports including the device frame.
 
-### Review artifacts
+### Design-stage references
 
-- [Prototype README and complete artifact index](../design/workplace-english/README.md)
-- [Detailed visual tokens, copy, states, and review criteria](../design/workplace-english/mockup-direction.md)
-- [Current voice and scoring overview](../design/workplace-english/previews/voice-flow.png)
-- [Choose → explore → practice overview](../design/workplace-english/previews/primary-flow.png)
-- [Hint → feedback → takeaway overview](../design/workplace-english/previews/supporting-flow.png)
-- [Prototype entry point](../design/workplace-english/index.html), [scenario content](../design/workplace-english/scenario-content.js), and [score definitions/audio wording](../design/workplace-english/voice-content.js)
-- [Earlier learner-interest research](../research/voice-tutor-learner-interest.md); these are interest signals, not validation of this exact product.
-
-To open the mockup from the repository root:
-
-```powershell
-python -m http.server 4173 --bind 127.0.0.1 --directory docs/design/workplace-english
-```
-
-Then visit [the home screen](http://127.0.0.1:4173/?v=2#home). Follow **Hosting a meeting → Practice this opening → Start practice → Start talking with Alex → Play sample answer**. The sample control advances prepared audio; it does not record the reviewer.
+- The local prototype included visual tokens, screen previews, scenario content, score examples, and prepared audio. These artifacts supported design review and are omitted from the submission.
+- The [earlier learner-interest research](../research/voice-tutor-learner-interest.md) records interest signals, not validation of this exact product.
+- The [product specification](workplace-english-product-spec.md) records the decisions made after this handoff.
 
 ## 5. Assignment constraints for the specification
 
@@ -141,16 +129,16 @@ The assignment's expected time is **two hours**, prioritizing working software. 
 
 Create a product specification and a technical specification, using the current mockup as a concrete reference. Resolve these questions before planning implementation:
 
-| Area | Decision to make |
-| --- | --- |
-| Exercise model | Short guided attempts, continuous roleplay, or both? When are scores shown and spoken coaching delivered? |
-| Learner and content | Target proficiency and language support; required scenarios/purposes for the take-home; how much personalization is necessary? |
-| Assessment | Final dimensions and scale; evidence and minimum sample requirements; rubric and calibration; treatment of unclear or interrupted input; what a retry should demonstrate. |
-| Conversation behavior | How a turn ends; tolerance for thinking pauses; interruption; explicit roleplay/coaching transitions; precise pause, mute, replay, help, finish, and resume semantics. |
-| Delivery and providers | Frontend platform, backend stack, LiveKit integration, speech/LLM/assessment providers, latency budget, and behavior when a provider is slow or unavailable. |
-| State and recovery | Ownership of session/turn/assessment state; Redis records and TTLs; reconnect, cancellation, retry, and prevention of duplicate or stale events. |
-| Data lifecycle | Whether audio is retained; transcript, score, and session retention/deletion; anonymous sessions versus any identity requirement. |
-| Acceptance and scope | Minimum end-to-end voice behavior, meaningful assessment checks, failure recovery, Docker Compose startup, and required submission materials. |
+| Area                   | Decision to make                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exercise model         | Short guided attempts, continuous roleplay, or both? When are scores shown and spoken coaching delivered?                                                                 |
+| Learner and content    | Target proficiency and language support; required scenarios/purposes for the take-home; how much personalization is necessary?                                            |
+| Assessment             | Final dimensions and scale; evidence and minimum sample requirements; rubric and calibration; treatment of unclear or interrupted input; what a retry should demonstrate. |
+| Conversation behavior  | How a turn ends; tolerance for thinking pauses; interruption; explicit roleplay/coaching transitions; precise pause, mute, replay, help, finish, and resume semantics.    |
+| Delivery and providers | Frontend platform, backend stack, LiveKit integration, speech/LLM/assessment providers, latency budget, and behavior when a provider is slow or unavailable.              |
+| State and recovery     | Ownership of session/turn/assessment state; Redis records and TTLs; reconnect, cancellation, retry, and prevention of duplicate or stale events.                          |
+| Data lifecycle         | Whether audio is retained; transcript, score, and session retention/deletion; anonymous sessions versus any identity requirement.                                         |
+| Acceptance and scope   | Minimum end-to-end voice behavior, meaningful assessment checks, failure recovery, Docker Compose startup, and required submission materials.                             |
 
 Suggested order: settle the exercise and feedback loop; write product acceptance criteria; choose the simplest architecture satisfying them and the assignment; then define implementation milestones. Features such as saved expressions, session history, accounts, streaks, and a larger curriculum are not required by the current mockup.
 

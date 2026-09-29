@@ -1,0 +1,2285 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Workplace English",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "summary": "Live",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content": {
+      "get": {
+        "summary": "Get Content",
+        "operationId": "get_content_api_content_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Content"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/guest": {
+      "post": {
+        "summary": "New Guest",
+        "operationId": "new_guest_api_guest_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions": {
+      "get": {
+        "summary": "Sessions",
+        "operationId": "sessions_api_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Session"
+                  },
+                  "type": "array",
+                  "title": "Response Sessions Api Sessions Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create",
+        "operationId": "create_api_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}": {
+      "get": {
+        "summary": "Get Session",
+        "operationId": "get_session_api_sessions__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete",
+        "operationId": "delete_api_sessions__identifier__delete",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}/connect": {
+      "post": {
+        "summary": "Connect",
+        "operationId": "connect_api_sessions__identifier__connect_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}/commands": {
+      "post": {
+        "summary": "Apply Command",
+        "operationId": "apply_command_api_sessions__identifier__commands_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Command-Input"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}/heartbeat": {
+      "post": {
+        "summary": "Heartbeat",
+        "operationId": "heartbeat_api_sessions__identifier__heartbeat_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Heartbeat"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}/events": {
+      "get": {
+        "summary": "Events",
+        "operationId": "events_api_sessions__identifier__events_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{identifier}/playback": {
+      "post": {
+        "summary": "Playback",
+        "operationId": "playback_api_sessions__identifier__playback_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Playback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content/{purpose_id}/playback": {
+      "post": {
+        "summary": "Expression Playback",
+        "operationId": "expression_playback_api_content__purpose_id__playback_post",
+        "parameters": [
+          {
+            "name": "purpose_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Purpose Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpressionPlayback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Answer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "input_id": {
+            "type": "string",
+            "title": "Input Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "transcript": {
+            "$ref": "#/components/schemas/Transcript"
+          },
+          "capture_seconds": {
+            "type": "number",
+            "maximum": 120.0,
+            "minimum": 0.0,
+            "title": "Capture Seconds"
+          },
+          "capture_limited": {
+            "type": "boolean",
+            "title": "Capture Limited",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "input_id",
+          "revision",
+          "question_id",
+          "transcript",
+          "capture_seconds",
+          "capture_limited"
+        ],
+        "title": "Answer"
+      },
+      "Assessment": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "running",
+              "ready",
+              "unavailable"
+            ],
+            "title": "Status",
+            "default": "none"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "frozen_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frozen Hash"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": ""
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version",
+            "default": "assessment-v1"
+          },
+          "rubric_version": {
+            "type": "string",
+            "title": "Rubric Version",
+            "default": "wording-v1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "request_id",
+          "attempt_id",
+          "frozen_hash",
+          "deadline",
+          "result",
+          "error",
+          "model",
+          "prompt_version",
+          "rubric_version"
+        ],
+        "title": "Assessment"
+      },
+      "AssessmentResult": {
+        "properties": {
+          "dimensions": {
+            "$ref": "#/components/schemas/Dimensions"
+          },
+          "strengths": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Strengths"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Issues"
+          },
+          "retry_priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "spoken_summary": {
+            "type": "string",
+            "maxLength": 900,
+            "minLength": 1,
+            "title": "Spoken Summary"
+          },
+          "modeled_example": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Modeled Example"
+          },
+          "takeaway": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Takeaway"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dimensions",
+          "strengths",
+          "issues",
+          "retry_priority",
+          "spoken_summary",
+          "modeled_example",
+          "takeaway"
+        ],
+        "title": "AssessmentResult"
+      },
+      "CoachingReply": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 900,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "evidence"
+        ],
+        "title": "CoachingReply"
+      },
+      "CoachingTurn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "input_id": {
+            "type": "string",
+            "title": "Input Id"
+          },
+          "transcript": {
+            "$ref": "#/components/schemas/Transcript"
+          },
+          "reply": {
+            "$ref": "#/components/schemas/CoachingReply"
+          },
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "input_id",
+          "transcript",
+          "reply",
+          "message_id"
+        ],
+        "title": "CoachingTurn"
+      },
+      "Command-Input": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Command Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "connection_epoch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Epoch"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "finish",
+              "done",
+              "use_answer",
+              "try_again",
+              "retry_operation",
+              "mute",
+              "unmute",
+              "replay",
+              "continue_answer",
+              "hint",
+              "focused_retry",
+              "expression"
+            ],
+            "title": "Type"
+          },
+          "input_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Id"
+          },
+          "expression_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "expression",
+                  "alternative",
+                  "example"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expression Id"
+          },
+          "target_note_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Note Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_id",
+          "expected_revision",
+          "type"
+        ],
+        "title": "Command"
+      },
+      "Command-Output": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Command Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "connection_epoch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Epoch"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "finish",
+              "done",
+              "use_answer",
+              "try_again",
+              "retry_operation",
+              "mute",
+              "unmute",
+              "replay",
+              "continue_answer",
+              "hint",
+              "focused_retry",
+              "expression"
+            ],
+            "title": "Type"
+          },
+          "input_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Id"
+          },
+          "expression_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "expression",
+                  "alternative",
+                  "example"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expression Id"
+          },
+          "target_note_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Note Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_id",
+          "expected_revision",
+          "connection_epoch",
+          "type",
+          "input_id",
+          "expression_id",
+          "target_note_id"
+        ],
+        "title": "Command"
+      },
+      "ConnectResult": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session",
+          "url",
+          "token"
+        ],
+        "title": "ConnectResult"
+      },
+      "Content": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "purposes": {
+            "items": {
+              "$ref": "#/components/schemas/Purpose"
+            },
+            "type": "array",
+            "maxItems": 9,
+            "minItems": 9,
+            "title": "Purposes"
+          },
+          "rubric": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Rubric"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "purposes",
+          "rubric"
+        ],
+        "title": "Content"
+      },
+      "CreateSession": {
+        "properties": {
+          "purpose_id": {
+            "type": "string",
+            "title": "Purpose Id"
+          },
+          "command_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Command Id"
+          },
+          "source_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "purpose_id",
+          "command_id"
+        ],
+        "title": "CreateSession"
+      },
+      "Dimension": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "scored",
+              "not_enough_detail",
+              "transcript_unclear",
+              "assessment_unavailable"
+            ],
+            "title": "Status"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "basis": {
+            "type": "string",
+            "const": "wording",
+            "title": "Basis"
+          },
+          "explanation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Explanation"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "score",
+          "basis",
+          "explanation",
+          "evidence"
+        ],
+        "title": "Dimension"
+      },
+      "Dimensions": {
+        "properties": {
+          "naturalness": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "workplace_tone": {
+            "$ref": "#/components/schemas/Dimension"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "naturalness",
+          "workplace_tone"
+        ],
+        "title": "Dimensions"
+      },
+      "Evidence": {
+        "properties": {
+          "turn_id": {
+            "type": "string",
+            "title": "Turn Id",
+            "description": "Copy an accepted_answers[].id exactly."
+          },
+          "answer_revision": {
+            "type": "integer",
+            "title": "Answer Revision",
+            "description": "Copy the revision of that accepted answer."
+          },
+          "observation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Observation"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "turn_id",
+          "answer_revision",
+          "observation",
+          "quote"
+        ],
+        "title": "Evidence"
+      },
+      "ExpressionPlayback": {
+        "properties": {
+          "expression_id": {
+            "type": "string",
+            "enum": [
+              "expression",
+              "alternative",
+              "example"
+            ],
+            "title": "Expression Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expression_id"
+        ],
+        "title": "ExpressionPlayback"
+      },
+      "FocusedRetry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "target_note_id": {
+            "type": "string",
+            "title": "Target Note Id"
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Target"
+          },
+          "situation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Situation"
+          },
+          "setup": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/Answer"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Answers"
+          },
+          "assessment": {
+            "$ref": "#/components/schemas/TargetedAssessment"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "target_note_id",
+          "target",
+          "situation",
+          "setup",
+          "question_id",
+          "answers",
+          "assessment"
+        ],
+        "title": "FocusedRetry"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Heartbeat": {
+        "properties": {
+          "connection_epoch": {
+            "type": "string",
+            "title": "Connection Epoch"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "connection_epoch"
+        ],
+        "title": "Heartbeat"
+      },
+      "Helper": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "generation_id": {
+            "type": "string",
+            "title": "Generation Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "ready",
+              "unavailable"
+            ],
+            "title": "Status",
+            "default": "pending"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "generation_id",
+          "status",
+          "text",
+          "deadline"
+        ],
+        "title": "Helper"
+      },
+      "Input": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "sealing",
+              "awaiting_limit_confirmation",
+              "submitting"
+            ],
+            "title": "Status",
+            "default": "open"
+          },
+          "first_speech_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Speech At"
+          },
+          "cue_shown": {
+            "type": "boolean",
+            "title": "Cue Shown",
+            "default": false
+          },
+          "capture_seconds": {
+            "type": "number",
+            "title": "Capture Seconds",
+            "default": 0
+          },
+          "capture_limited": {
+            "type": "boolean",
+            "title": "Capture Limited",
+            "default": false
+          },
+          "continuation_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuation Of"
+          },
+          "max_capture_seconds": {
+            "type": "number",
+            "maximum": 120.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Max Capture Seconds",
+            "default": 120
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "first_speech_at",
+          "cue_shown",
+          "capture_seconds",
+          "capture_limited",
+          "continuation_of",
+          "max_capture_seconds"
+        ],
+        "title": "Input"
+      },
+      "Note": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Id",
+            "description": "Unique note key, such as note_1. This is not an answer ID."
+          },
+          "observation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Observation"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Evidence"
+          },
+          "suggestion": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Suggestion"
+          },
+          "example": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Example"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "observation",
+          "evidence",
+          "suggestion",
+          "example",
+          "reason"
+        ],
+        "title": "Note"
+      },
+      "Playback": {
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message_id"
+        ],
+        "title": "Playback"
+      },
+      "Priority": {
+        "properties": {
+          "note_id": {
+            "type": "string",
+            "title": "Note Id",
+            "description": "Copy the id of a Note returned in strengths or issues, not an answer ID."
+          },
+          "suggestion": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Suggestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "note_id",
+          "suggestion"
+        ],
+        "title": "Priority"
+      },
+      "Purpose": {
+        "properties": {
+          "purpose_id": {
+            "type": "string",
+            "title": "Purpose Id"
+          },
+          "scenario_id": {
+            "type": "string",
+            "title": "Scenario Id"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "expression": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Expression"
+          },
+          "alternative": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Alternative"
+          },
+          "explanation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Explanation"
+          },
+          "example": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Example"
+          },
+          "hint_starter": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Hint Starter"
+          },
+          "preset_situation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Preset Situation"
+          },
+          "learner_role": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Learner Role"
+          },
+          "tutor_role": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Tutor Role"
+          },
+          "communication_goal": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Communication Goal"
+          },
+          "opening_direction": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Opening Direction"
+          },
+          "difficulty": {
+            "type": "string",
+            "title": "Difficulty",
+            "default": "B1-B2"
+          },
+          "allowed_variations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Variations"
+          },
+          "integrated": {
+            "type": "boolean",
+            "title": "Integrated",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "purpose_id",
+          "scenario_id",
+          "order",
+          "title",
+          "expression",
+          "alternative",
+          "explanation",
+          "example",
+          "hint_starter",
+          "preset_situation",
+          "learner_role",
+          "tutor_role",
+          "communication_goal",
+          "opening_direction",
+          "difficulty",
+          "allowed_variations",
+          "integrated"
+        ],
+        "title": "Purpose"
+      },
+      "Receipt": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "title": "Command Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "input_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Id"
+          },
+          "answer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_id",
+          "revision",
+          "input_id",
+          "answer_id"
+        ],
+        "title": "Receipt"
+      },
+      "Session": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "title": "Schema Version",
+            "default": 1
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "guest_id": {
+            "type": "string",
+            "title": "Guest Id"
+          },
+          "purpose_id": {
+            "type": "string",
+            "title": "Purpose Id"
+          },
+          "content_version": {
+            "type": "string",
+            "title": "Content Version"
+          },
+          "conversation_model": {
+            "type": "string",
+            "title": "Conversation Model"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version",
+            "default": "conversation-v1"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence",
+            "default": 1
+          },
+          "lifecycle": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "paused",
+              "completed"
+            ],
+            "title": "Lifecycle",
+            "default": "paused"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "roleplay",
+              "coaching",
+              "retry"
+            ],
+            "title": "Phase",
+            "default": "roleplay"
+          },
+          "substate": {
+            "type": "string",
+            "enum": [
+              "connecting",
+              "opening",
+              "listening",
+              "thinking",
+              "speaking",
+              "capped",
+              "assessment_pending",
+              "ready",
+              "unavailable"
+            ],
+            "title": "Substate",
+            "default": "connecting"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "last_practice_at": {
+            "type": "number",
+            "title": "Last Practice At"
+          },
+          "expires_at": {
+            "type": "number",
+            "title": "Expires At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "connection_epoch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Epoch"
+          },
+          "room": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Room"
+          },
+          "participant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant"
+          },
+          "generation_id": {
+            "type": "string",
+            "title": "Generation Id"
+          },
+          "situation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Situation"
+          },
+          "setup": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/Answer"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Answers"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/TutorMessage"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Messages"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending_command": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Command-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receipts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Receipt"
+            },
+            "type": "object",
+            "title": "Receipts"
+          },
+          "assessment": {
+            "$ref": "#/components/schemas/Assessment"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "capture_muted": {
+            "type": "boolean",
+            "title": "Capture Muted",
+            "default": false
+          },
+          "replay_restore_capture": {
+            "type": "boolean",
+            "title": "Replay Restore Capture",
+            "default": false
+          },
+          "helper": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Helper"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retries": {
+            "items": {
+              "$ref": "#/components/schemas/FocusedRetry"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Retries"
+          },
+          "coaching_turns": {
+            "items": {
+              "$ref": "#/components/schemas/CoachingTurn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Coaching Turns"
+          },
+          "source_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Session Id"
+          },
+          "previous_opening": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Opening"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "guest_id",
+          "purpose_id",
+          "content_version",
+          "conversation_model",
+          "prompt_version",
+          "revision",
+          "sequence",
+          "lifecycle",
+          "phase",
+          "substate",
+          "created_at",
+          "last_practice_at",
+          "expires_at",
+          "completed_at",
+          "connection_epoch",
+          "room",
+          "participant",
+          "generation_id",
+          "situation",
+          "setup",
+          "question_id",
+          "answers",
+          "messages",
+          "input",
+          "pending_command",
+          "receipts",
+          "assessment",
+          "notice",
+          "capture_muted",
+          "replay_restore_capture",
+          "helper",
+          "retries",
+          "coaching_turns",
+          "source_session_id",
+          "previous_opening"
+        ],
+        "title": "Session"
+      },
+      "TargetedAssessment": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "running",
+              "ready",
+              "unavailable"
+            ],
+            "title": "Status",
+            "default": "none"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "frozen_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frozen Hash"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetedResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "request_id",
+          "attempt_id",
+          "frozen_hash",
+          "deadline",
+          "result"
+        ],
+        "title": "TargetedAssessment"
+      },
+      "TargetedResult": {
+        "properties": {
+          "target_note_id": {
+            "type": "string",
+            "title": "Target Note Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "demonstrated",
+              "developing",
+              "not_enough_detail",
+              "transcript_unclear"
+            ],
+            "title": "Status"
+          },
+          "observation": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Observation"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence"
+          },
+          "suggestion": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Suggestion"
+          },
+          "modeled_example": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Modeled Example"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_note_id",
+          "status",
+          "observation",
+          "evidence",
+          "suggestion",
+          "modeled_example"
+        ],
+        "title": "TargetedResult"
+      },
+      "Transcript": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 24000,
+            "title": "Text"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "reliable",
+              "unclear"
+            ],
+            "title": "Status",
+            "default": "reliable"
+          },
+          "segment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Segment Ids"
+          },
+          "source_identity": {
+            "type": "string",
+            "title": "Source Identity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "status",
+          "segment_ids",
+          "source_identity"
+        ],
+        "title": "Transcript"
+      },
+      "TutorMessage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "generation_id": {
+            "type": "string",
+            "title": "Generation Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "opening",
+              "follow_up",
+              "bridge",
+              "coaching",
+              "help",
+              "coaching_answer",
+              "retry_coaching"
+            ],
+            "title": "Kind"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "playing",
+              "completed",
+              "interrupted",
+              "failed"
+            ],
+            "title": "Delivery",
+            "default": "pending"
+          },
+          "playback_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Playback Id"
+          },
+          "played_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Played Text"
+          },
+          "superseded": {
+            "type": "boolean",
+            "title": "Superseded",
+            "default": false
+          },
+          "retry_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "generation_id",
+          "text",
+          "kind",
+          "delivery",
+          "playback_id",
+          "played_text",
+          "superseded",
+          "retry_id"
+        ],
+        "title": "TutorMessage"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

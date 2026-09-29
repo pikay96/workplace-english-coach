@@ -4,6 +4,8 @@ Date: 2026-09-26
 
 Status: technical design draft for review. LiveKit-only runtime credentials, the 60-second cue / 120-second answer cap, and wording-based MVP assessment are agreed. Fluency and Pronunciation scores are deferred beyond the MVP. No application code, provider configuration, Docker setup, or live model benchmark has been completed as part of this specification.
 
+Implementation status, 2026-09-26: the user subsequently authorized execution through milestone 4. See the [milestone 4 checkpoint](workplace-english-milestone-4-checkpoint.md) for implemented behavior, observed verification, and remaining limits. Requirements below remain the acceptance baseline; the checkpoint does not establish release latency or human-review results.
+
 ## 1. Scope and authority
 
 Implement the learning journey in the [product specification](../product/workplace-english-product-spec.md): nine communication purposes, an LLM-generated spoken opening, an answer-dependent exchange of 2–3 learner turns, wording-based spoken coaching, optional 1–2-turn focused retries, and temporary guest history. Preserve the single portrait interface and voice-led experience.
@@ -168,7 +170,7 @@ Coaching questions stay in coaching. A focused retry has its own ID and 1–2-an
 
 Use explicit dispatch with a named agent and metadata containing only `session_id`, `guest_id`, and `connection_epoch`. On job entry, fetch and authorize the Redis snapshot instead of trusting the dispatch metadata as session content. Explicit dispatch and container-hosted agent jobs are documented LiveKit paths. [L6, L7]
 
-Use Silero VAD and LiveKit's text-based `MultilingualModel` turn detector with English STT as the initial completion detector. The detector uses conversation context to distinguish a pause from completion and can run locally on the CPU for custom agent deployments. Bake its assets into the agent image. Tune endpointing against the specified thinking-pause fixtures; STT chunk finalization must not independently commit answers. Local speech activity detection also stops TTS promptly on learner interruption. [L14, L15]
+Use Silero VAD and LiveKit's text-based `MultilingualModel` turn detector with English STT as the initial completion detector. The detector uses conversation context to distinguish a pause from completion and can run locally on the CPU for custom agent deployments. Bake its assets into the agent image. Tune endpointing against the specified thinking-pause fixtures; STT chunk finalization must not independently commit answers. Speech activity marks answer timing only during an authorized listening interval and cannot interrupt TTS. [L14, L15]
 
 The adapter must map streaming transcript segments and measured audio boundaries to application `input_id` values. **I'm done** submits the still-open buffer; it is a no-op for an empty or already submitted buffer. It must suppress a later duplicate end-of-turn event. Cap confirmation is a distinct sealed-but-unsubmitted state, not an already accepted answer.
 
@@ -187,13 +189,13 @@ Disable speculative/preemptive generation and automatic resumption after false i
 
 LiveKit's `user_turn_limit.max_duration` and `on_user_turn_exceeded` offer turn-limit hooks, but the SDK counter resets when the agent starts speaking and its default hook generates a spoken interruption. Our application answer clock and buffer state are authoritative. Override/suppress the default interruption if using that hook; no tutor utterance may bypass the capped-answer choice or reset a continuation budget. [L3]
 
-### Interruptions and premature completion
+### Alternating turns and premature completion
 
-Speech during tutor playback stops the current output immediately and opens a learner capture buffer. It is eligible learner input, unlike a Pause or Hint fragment. An interrupted tutor message is retained with its delivery status; neither the model nor the UI should claim its full contents were heard.
+User correction on 2026-09-26: Alex finishes speaking before answer capture opens. Keep browser microphone publication and server capture disabled during response generation and playback, including gaps between audio chunks. Speech during tutor output is ignored and cannot cancel playback, create an answer, or start its duration clock. Open a fresh input only after successful playback while the same session and output generation remain authorized. Playback failure leaves capture closed with an explicit retry state. Pause, Finish, navigation, and ownership loss can still cancel output. An interrupted tutor message is retained with its delivery status; neither the model nor the UI should claim its full contents were heard.
 
-If completion was detected before the learner finished the same answer, the model can classify the new segment as a continuation of the latest answer. While that tutor response is being generated, played, or interrupted, merge the segments under the same `turn_id`, increment its `answer_revision`, cancel the obsolete response, and recompute the next action. Do not increment the accepted-answer count. Any assessment based on the older exchange revision is rejected.
+If completion was detected before the learner finished the same answer, a segment spoken during the next authorized listening interval can be classified as a continuation of the latest answer. Merge it under the same `turn_id`, increment its `answer_revision`, and recompute the next action. Do not increment the accepted-answer count. Any assessment based on the older exchange revision is rejected. Do not capture continuation speech during tutor generation or playback. The implementation also exposes **I wasn’t finished** to identify the continuation before capture and apply the remaining duration allowance. Model-inferred continuation currently enforces the combined limit at submission; see the checkpoint for the capture-timing limitation.
 
-The transition into coaching remains interruptible. A continuation that interrupts the premature coaching bridge reopens the latest answer and invalidates that provisional transition. Freeze the exchange once the bridge reaches terminal delivery with no continuation being processed: completed playback, or failed playback with output canceled. An explicit Pause, navigation, or Finish can also settle an already committed coaching transition using only accepted answers. Playback failure must not block assessment forever. After freezing, new speech is a coaching question or clarification rather than an additional original roleplay answer. This makes the continuation boundary explicit and testable.
+The coaching bridge also keeps capture disabled. Freeze the exchange once the bridge reaches terminal delivery: completed playback, or failed playback with output canceled. An explicit Pause, navigation, or Finish can also settle an already committed coaching transition using only accepted answers. Playback failure must not block assessment forever. After freezing, future authorized capture is for coaching questions or clarification rather than an additional original roleplay answer.
 
 ### Control effects
 
@@ -387,7 +389,7 @@ These are release targets to measure, not observed results. Measure on a stable 
 | Detected completed answer to first audible substantive response | p50 ≤ 1.8 seconds, p95 ≤ 3.5 seconds over at least 30 replies |
 | Last speech frame to reply for clearly finished audio samples | p95 ≤ 5 seconds; measure endpointing separately from generation |
 | Pause/Mute/Finish local capture stop | ≤ 150 ms after the control event |
-| Intentional barge-in to tutor silence | p95 ≤ 300 ms; no later resumption of obsolete audio |
+| Explicit Pause/Finish to tutor silence | p95 ≤ 300 ms; no later resumption of obsolete audio |
 | Feedback after the final answer | Short acknowledgment/bridge within reply budget; full assessment p95 ≤ 12 seconds |
 | Assessment request | 30-second total deadline including at most one retry; visible unavailable state afterward |
 | Transcription / turn proposal / TTS start | 8-second deadline per operation; no hidden indefinite SDK retries |
@@ -491,7 +493,7 @@ Log only operation IDs, phase, error category, timing, numeric usage, and counte
 
 ### First integration gate
 
-Before building all screens, demonstrate one real purpose through the selected stack using LiveKit credentials alone: generated opening → two spoken learner answers → controlled coaching transition → two wording-supported dimensions → Finish → refresh and Review. Also demonstrate a pause during an answer, a barge-in, and the capped-answer submit/retry choices. This is an implementation acceptance gate, not a claim that the prototype already exists.
+Before building all screens, demonstrate one real purpose through the selected stack using LiveKit credentials alone: generated opening → two spoken learner answers → controlled coaching transition → two wording-supported dimensions → Finish → refresh and Review. Also demonstrate a pause during an answer, ignored speech during Alex playback, explicit playback cancellation, and the capped-answer submit/retry choices. This is an implementation acceptance gate, not a claim that the prototype already exists.
 
 Verify the exact pinned SDK's STT finalization, turn detector, application-controlled response generation, Inference text/TTS combination, audio boundaries, interruption flushing, and recording opt-out. If an API mapping is unsupported, resolve it in the adapter and update this specification. Do not silently switch to a direct-provider API, bypass LiveKit browser transport, or use prepared successful conversations.
 
@@ -502,7 +504,7 @@ Verify the exact pinned SDK's STT finalization, turn detector, application-contr
 | Domain tests with a controllable clock and real Redis integration cases | Atomic state transitions, 2/3 and 1/2 budgets, 60/120-second behavior, continuation budgets, idempotent input/commands, expiry, deletion races, ownership, stale-result rejection |
 | Inference-contract tests | LiveKit-only authentication; valid/invalid result schemas; transcript-ID mapping and quote provenance; no audio dimensions/bases; deadlines and error mapping |
 | LiveKit text debugger / agent tests | Answer-dependent reasoning, phase context, goal judgment, coaching questions, help classification, and supported tool behavior; these do not prove audio quality |
-| Real audio integration checks | End detection, barge-in, physical-device playback/capture, TTS delivery, transcript fidelity, and recovery boundaries |
+| Real audio integration checks | End detection, alternating turns, physical-device playback/capture, TTS delivery, transcript fidelity, and recovery boundaries |
 | Browser tests | Portrait bounds, navigation, controls, event reordering, local media stops, completed review without capture, and session isolation |
 | Clean Compose smoke test | Host-independent startup, actual providers, Redis-backed recovery, redacted failure messages, and no recording files |
 
@@ -510,9 +512,9 @@ Verify the exact pinned SDK's STT finalization, turn detector, application-contr
 
 Create at least 24 short exchange fixtures across the nine purposes, including at least eight human-recorded examples from consenting speakers with varied accents. Human audio checks STT fidelity and turn handling; text fixtures check wording feedback. These are explicit test assets with provenance, not retained learner sessions or a pronunciation benchmark.
 
-Cover clear short answers, longer multi-sentence answers, ordinary 1–3-second thinking pauses, filler/restarts, a deliberately unfinished clause, a completed concise answer, silence, background noise, isolated acknowledgments, varied accents, recognition ambiguity, identical wording spoken with different intonation, tutor leakage, mid-answer Pause, barge-in, and continuation after premature endpointing. When the recognized wording/context is identical, intonation must not cause different assessment claims; it is outside the assessor's input.
+Cover clear short answers, longer multi-sentence answers, ordinary 1–3-second thinking pauses, filler/restarts, a deliberately unfinished clause, a completed concise answer, silence, background noise, isolated acknowledgments, varied accents, recognition ambiguity, identical wording spoken with different intonation, tutor leakage, mid-answer Pause, speech during disabled capture, and continuation after premature endpointing. When the recognized wording/context is identical, intonation must not cause different assessment claims; it is outside the assessor's input.
 
-For turn-taking, run at least ten pause/continuation cases and ten finished-answer/manual-submit cases. Require no double counts, no substantive response during designated ordinary thinking pauses in at least 9/10 cases, and reliable single submission with **I'm done** in all manual-submit cases. Run at least ten intentional interruptions: no obsolete utterance may resume. Verify first-speech timing, one 60-second visual cue, capture stop at 120 seconds, explicit submit/retry, cap/end-event races, same-answer continuation budgets, and loss of a capped candidate on recovery. Duration must not award or deduct points. Measure latency separately.
+For turn-taking, run at least ten pause/continuation cases and ten finished-answer/manual-submit cases. Require no double counts, no substantive response during designated ordinary thinking pauses in at least 9/10 cases, and reliable single submission with **I'm done** in all manual-submit cases. Run at least ten attempts to speak during tutor playback: playback must continue and capture must stay disabled. Separately test explicit Pause/Finish cancellation: no obsolete utterance may resume. Verify first-speech timing, one 60-second visual cue, capture stop at 120 seconds, explicit submit/retry, cap/end-event races, same-answer continuation budgets, and loss of a capped candidate on recovery. Duration must not award or deduct points. Measure latency separately.
 
 For assessment, two human reviewers familiar with the rubric annotate wording sufficiency and defensible score ranges before seeing model results. Require eligible full-evidence fixtures to exercise both dimensions; silence/acknowledgment-only fixtures to avoid a fabricated full scorecard; uncertain transcription to be treated cautiously; every evidence reference/quote to resolve; and no delivery or invented quotation claims. At least 80% of supported dimension judgments should fall within the agreed range, with larger disagreements reviewed and addressed. These are formative-feedback acceptance checks, not validated proficiency measurement.
 
@@ -528,7 +530,7 @@ Repeat a representative six-exchange subset three times to inspect instability i
 | A04 | Two-answer goal-achieved case closes with acknowledgment/bridge and no outstanding question |
 | A05 | Three-answer goal-not-demonstrated case cannot produce a fourth roleplay prompt |
 | A06 | Representative pause audio, manual submission, 60/120-second cue/cap, continuation timing, and cap-choice races; one accepted input |
-| A07 | Real barge-in and same-answer continuation; obsolete playback canceled and count remains correct |
+| A07 | Speech during tutor output is ignored; capture opens after successful playback; explicit cancellation never resumes obsolete audio |
 | A08 | Control matrix tests, including helpers during Pause and no helper audio in evidence |
 | A09 | Reliable-wording fixtures exercise two separate 1–5 scores and transcript evidence; no aggregate/audio dimensions |
 | A10 | Insufficient/unclear transcripts produce dimension-specific availability reasons |
