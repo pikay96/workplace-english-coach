@@ -1,6 +1,6 @@
 # Verification notes
 
-These checks were run on Windows with Microsoft Edge and four Linux containers. They cover a take-home demonstration, not a production release.
+This record covers the initial Workplace English Coach build and walkthrough, verified on September 27, 2026 using Windows, Microsoft Edge, and four Linux containers. The checks establish a working demonstration; production reliability and broader learner evaluation remain open. For commands to run today, see the [development guide](../development.md).
 
 ## Application checks
 
@@ -30,15 +30,15 @@ The replacement recording was verified on September 27, 2026:
 
 The old cutoff's root cause was not conclusively established. A fresh browser probe captured a complete opening, and this replacement passed the content check. These results verify this recording; they do not establish that intermittent speech failures are resolved in the application.
 
-## Clean submission check
+## Original submission startup check
 
 The selected submission files built and started in a separate Compose project on port 8083. Web, API, agent, and Redis were healthy, and the readiness endpoint returned `ready`. Existing dependency and model caches were available. All 121 runtime/configuration files compared with that built copy were unchanged during the recording work. The successful recording used the existing app on port 8080; its 32 backend Python source files matched the submission after normalizing line endings.
 
-## Submission contents
+## Original submission archive
 
-The submission contains the application source, runtime assets and licenses, dependency locks, Compose configuration, tests, required documents, and the final walkthrough. It also includes the written workflow records listed in the [documentation guide](../README.md): research, brainstorming, design handoff notes, specifications, implementation plans, milestone checkpoints, and investigation notes. The design prototype and its assets, video-production tools, and raw recordings are excluded from the submitted working tree.
+The submitted archive contained the application source, runtime assets and licenses, dependency locks, Compose configuration, tests, required documents, and the final walkthrough. It also included the written workflow records listed in the [documentation guide](../README.md). The design prototype and its assets, video-production tools, and raw recordings were excluded from the submitted working tree.
 
-The original Git history is retained, including earlier planning documents. The submission is assembled in a separate local repository so the source repository's branch and staging area are not changed. Credentials and generated environments are excluded from both submitted files and container build context.
+The archive retained the original Git history, including earlier planning documents. It was assembled in a separate local repository to preserve the source repository's branch and staging area during submission preparation. Credentials and generated environments were excluded from submitted files and container build context.
 
 ## Remaining limits
 
@@ -47,4 +47,4 @@ The original Git history is retained, including earlier planning documents. The 
 - Coaching quality, varied accents, physical microphones, acoustic echo, and the phone/browser matrix need human evaluation.
 - Redis persistence is disabled; restarting Redis loses temporary history.
 - Explicit **I wasn't finished** preserves the remaining answer allowance. Model-inferred continuation checks the combined time after capture and can therefore record beyond that allowance before rejecting it.
-- The demo defaults to four active voice sessions. There is no 10,000-session load-test result; the README describes proposed changes for that scale.
+- The demo defaults to four active voice sessions. There is no 10,000-session load-test result; the [engineering notes](../engineering.md#scaling-to-10000-concurrent-sessions) describe proposed changes for that scale.

@@ -1,6 +1,6 @@
 # How I built this
 
-I used AI throughout the project, from shaping the idea to debugging the voice experience. I worked in stages so I could review the product and try a working conversation before adding more features.
+I used AI throughout Workplace English Coach, from shaping the idea to debugging the voice experience. I worked in stages so I could review the product and try a working conversation before adding more features. This is the process behind the original take-home project.
 
 ## AI setup
 
@@ -19,7 +19,13 @@ I used AI throughout the project, from shaping the idea to debugging the voice e
 7. **Try it and refine it.** I tried the experience and gave feedback on what I saw and heard. That led to changes in turn-taking, Alex's voice and pacing, and speech buffering. The [audio investigation](docs/technical/workplace-english-audio-diagnosis.md) records how we checked transcription, model output, synthesis, playback, and recording.
 8. **Demo video and submission.** I used a scripted learner to record the running app, reviewed the exported video, and prepared the README, workflow notes, and repository ZIP. The [demo notes](demo/README.md) and [verification record](docs/verification/workplace-english-release-checks.md) describe the walkthrough and packaging checks.
 
-The [documentation guide](docs/README.md) collects the written records and supporting research. They preserve the process as it happened, including decisions that were later revised. The design prototype and its assets are not included in the submission.
+The [documentation guide](docs/README.md) collects the written records and supporting research. They preserve the process as it happened, including decisions that were later revised. The design prototype and its assets remain outside the tracked project.
+
+## Decisions I reviewed
+
+- **The practice loop.** I worked through the scenario coverage, short exchanges, and focused retries before implementation. The product spec records the resulting requirements and later revisions.
+- **The scope of feedback.** I chose wording-based feedback for the first version: Naturalness and Workplace tone, with evidence from the learner's answers. Fluency and pronunciation assessment were deferred.
+- **The sound of the experience.** I tried voices and speaking speeds, asked for clearer articulation, and gave listening feedback when speech sounded clipped. That feedback led to checks beyond whether the code or video export completed successfully.
 
 ## How AI helped me work
 

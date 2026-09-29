@@ -17,13 +17,13 @@ submission/
 *.log
 .DS_Store
 
-# Local agent tooling and mockup assets; written workflow documents are submitted.
+# Local agent tooling and mockup assets; written workflow documents are tracked.
 /.agents/
 /.impeccable/
 /skills-lock.json
 /docs/design/
 
-# Recording tools stay local; the finished walkthrough and its notes are submitted.
+# Recording tools stay local; the finished walkthrough and its notes are tracked.
 /demo/*.py
 /frontend/tests/demo/
 /frontend/playwright.demo.config.ts
